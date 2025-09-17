@@ -32,346 +32,247 @@
             font-size: 0.8rem;
         }
         .modal {
-            background-color: rgba(0, 0, 0, 0.5);
-            transition: opacity 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
-        .modal-content {
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-        }
-        .modal.is-active .modal-content {
-            transform: translateY(0);
-        }
-        .truncate-text {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .modal.hidden {
+            opacity: 0;
+            visibility: hidden;
         }
     </style>
 </head>
 <body class="p-6">
-    <div class="max-w-7xl mx-auto space-y-8">
-        <!-- Header -->
-        <header class="text-center">
-            <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight mb-2">Admin Dashboard</h1>
-            <p class="text-lg text-gray-500">View and manage census records</p>
+
+    <!-- Loading screen -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <div class="loading mb-4"></div>
+            <p class="text-gray-600 font-semibold">Loading data...</p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto hidden" id="mainContent">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight mb-2">Census Admin Dashboard</h1>
+            <p class="text-lg text-gray-500">Manage and view census records.</p>
         </header>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div class="admin-card p-6">
-                <p class="text-5xl font-bold text-blue-600 mb-2" id="totalHouseholds">0</p>
-                <p class="text-lg text-gray-600 font-semibold">Households</p>
+        <!-- Stats and Search -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="admin-card text-center bg-blue-100 text-blue-800">
+                <h3 class="text-2xl font-bold" id="totalHouseholds">0</h3>
+                <p class="text-sm-condensed">Households</p>
             </div>
-            <div class="admin-card p-6">
-                <p class="text-5xl font-bold text-green-600 mb-2" id="totalMembers">0</p>
-                <p class="text-lg text-gray-600 font-semibold">Members</p>
+            <div class="admin-card text-center bg-green-100 text-green-800">
+                <h3 class="text-2xl font-bold" id="totalMembers">0</h3>
+                <p class="text-sm-condensed">Total Members</p>
             </div>
-            <div class="admin-card p-6">
-                <p class="text-5xl font-bold text-purple-600 mb-2" id="totalChildren">0</p>
-                <p class="text-lg text-gray-600 font-semibold">Children</p>
+            <div class="admin-card text-center bg-purple-100 text-purple-800">
+                <h3 class="text-2xl font-bold" id="totalChildren">0</h3>
+                <p class="text-sm-condensed">Total Children</p>
             </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="admin-card">
-            <!-- Search and Controls -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-                <div class="flex-grow w-full md:w-auto relative">
-                    <input type="text" id="searchInput" placeholder="Search by Household ID or Name..."
-                        class="w-full p-3 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow duration-200">
-                    <i class="fas fa-search text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
-                </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <button id="refreshBtn"
-                        class="flex-shrink-0 w-1/2 md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i class="fas fa-sync-alt mr-2"></i> Refresh
-                    </button>
-                    <button id="exportBtn"
-                        class="flex-shrink-0 w-1/2 md:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <i class="fas fa-file-excel mr-2"></i> Export
-                    </button>
-                </div>
-            </div>
-
-            <!-- Record Table -->
-            <div id="recordsContainer" class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Household ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recordsTableBody" class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
-                                <span class="loading"></span> Loading records...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination (Placeholder) -->
-            <div class="mt-6 text-center text-gray-500 text-sm">
-                <!-- Pagination functionality to be added here if needed for large datasets -->
+            <div class="admin-card bg-gray-100 p-4 rounded-lg flex items-center shadow-inner">
+                <i class="fas fa-search text-gray-400 mr-2"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, address, or ID..." class="w-full bg-transparent border-none focus:ring-0 focus:outline-none placeholder-gray-400 text-sm">
             </div>
         </div>
 
-        <!-- Message Box -->
-        <div id="messageBox" class="mt-4 p-4 rounded-lg text-sm text-center font-semibold transition-all duration-300 hidden"></div>
+        <!-- Records Table -->
+        <div class="admin-card overflow-x-auto shadow-xl">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Household ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Household Head</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block Name</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Records will be populated here -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Record Details Modal -->
-    <div id="recordModal" class="modal fixed inset-0 z-50 overflow-y-auto hidden flex items-center justify-center p-4">
-        <div class="modal-content bg-white w-full max-w-2xl mx-auto rounded-xl shadow-2xl p-6 relative">
-            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors duration-200">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-            <h2 class="text-2xl font-bold mb-4">Record Details</h2>
-            <div id="modalContent" class="space-y-6">
-                <!-- Record details will be injected here -->
-            </div>
-            <div class="mt-6 flex justify-end gap-3">
-                <button id="printBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <i class="fas fa-print mr-2"></i> Print
+    <!-- Record View Modal -->
+    <div id="recordModal" class="modal fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="relative bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl mx-4 my-8 transform transition-all sm:my-10 sm:max-w-5xl sm:p-8">
+            <div class="flex justify-between items-start mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Record Details</h2>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
                 </button>
-                <button id="deleteBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <i class="fas fa-trash-alt mr-2"></i> Delete
+            </div>
+            <div id="modalContent" class="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
+                <!-- Record details will be populated here -->
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-200 flex justify-end items-center gap-4">
+                <a href="#" id="editBtn" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>Edit Record
+                </a>
+                <button id="deleteBtn" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition-colors">
+                    <i class="fas fa-trash-alt mr-2"></i>Delete Record
+                </button>
+                <button id="printBtn" class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition-colors">
+                    <i class="fas fa-print mr-2"></i>Print
                 </button>
             </div>
         </div>
     </div>
-    
-    <!-- Confirmation/Message Modal -->
-    <div id="confirmModal" class="modal fixed inset-0 z-50 overflow-y-auto hidden flex items-center justify-center p-4">
-        <div class="modal-content bg-white w-full max-w-sm mx-auto rounded-xl shadow-2xl p-6 text-center">
-            <h3 class="text-xl font-bold mb-4" id="confirmTitle"></h3>
-            <p class="text-gray-600 mb-6" id="confirmMessage"></p>
-            <div id="confirmButtons" class="flex justify-center gap-4">
-                <button id="confirmYesBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    Confirm
-                </button>
-                <button id="confirmCancelBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-    
+
+    <!-- Message Box -->
+    <div id="messageBox" class="fixed bottom-4 right-4 p-4 rounded-lg text-sm font-semibold transition-all duration-300 hidden"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const API_URL = 'https://script.google.com/macros/s/AKfycby0sCIEYi_NLjDMzUmB7-3oiVoQlJErtKd9DNt4vmlSWPDpSMkF42WA1CcEOGA0_bW7Wg/exec'; // REMEMBER TO UPDATE THIS
-            
+        document.addEventListener('DOMContentLoaded', async () => {
+            const API_URL = 'https://script.google.com/macros/s/AKfycbzDmCUNZYLbjqTAg-IMkyZHaX9B1RXrkT_0YBig9vF984c1mdmhzWPaYhxVO__qBnYXcQ/exec'; // REMEMBER TO UPDATE THIS
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const mainContent = document.getElementById('mainContent');
+            const searchInput = document.getElementById('searchInput');
             const totalHouseholdsElem = document.getElementById('totalHouseholds');
             const totalMembersElem = document.getElementById('totalMembers');
             const totalChildrenElem = document.getElementById('totalChildren');
-            const searchInput = document.getElementById('searchInput');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const recordsTableBody = document.getElementById('recordsTableBody');
+            const recordsTable = document.getElementById('recordsTable');
             const recordModal = document.getElementById('recordModal');
-            const closeModalBtn = document.getElementById('closeModalBtn');
             const modalContent = document.getElementById('modalContent');
-            const printBtn = document.getElementById('printBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const editBtn = document.getElementById('editBtn');
             const deleteBtn = document.getElementById('deleteBtn');
+            const printBtn = document.getElementById('printBtn');
             const messageBox = document.getElementById('messageBox');
-            
-            // New modal elements
-            const confirmModal = document.getElementById('confirmModal');
-            const confirmTitle = document.getElementById('confirmTitle');
-            const confirmMessage = document.getElementById('confirmMessage');
-            const confirmYesBtn = document.getElementById('confirmYesBtn');
-            const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 
             let allRecords = [];
             let currentRecord = null;
             
-            // Reusable function to show a custom message
-            function showMessage(message, colorClass, isConfirm = false) {
-                if (isConfirm) {
-                    confirmTitle.textContent = "Confirm Deletion";
-                    confirmMessage.textContent = message;
-                    confirmModal.classList.remove('hidden');
-                } else {
-                    messageBox.textContent = message;
-                    messageBox.className = `mt-4 p-4 rounded-lg text-sm text-center font-semibold ${colorClass}`;
-                    messageBox.classList.remove('hidden');
-                    setTimeout(() => {
-                        messageBox.classList.add('hidden');
-                    }, 5000);
-                }
-            }
-            
-            // Hide the record modal
-            function hideRecordModal() {
-                recordModal.classList.add('hidden');
-                modalContent.innerHTML = '';
+            // Function to display messages
+            function showMessage(message, colorClass) {
+                messageBox.textContent = message;
+                messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg text-sm font-semibold ${colorClass}`;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 5000);
             }
 
-            // Hide the confirmation modal
-            function hideConfirmModal() {
-                confirmModal.classList.add('hidden');
-            }
-
-            // Event listeners for modals
-            closeModalBtn.addEventListener('click', hideRecordModal);
-            confirmCancelBtn.addEventListener('click', hideConfirmModal);
-            recordModal.addEventListener('click', (e) => {
-                if (e.target.id === 'recordModal') {
-                    hideRecordModal();
-                }
-            });
-            confirmModal.addEventListener('click', (e) => {
-                if (e.target.id === 'confirmModal') {
-                    hideConfirmModal();
-                }
-            });
-
-            // Fetch counts for dashboard
+            // Fetch total counts from the API
             async function fetchCounts() {
                 try {
                     const response = await fetch(`${API_URL}?action=getCounts`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                    const counts = await response.json();
+                    if (counts) {
+                        totalHouseholdsElem.textContent = counts.totalHouseholds;
+                        totalMembersElem.textContent = counts.totalMembers;
+                        totalChildrenElem.textContent = counts.totalChildren;
                     }
-                    const data = await response.json();
-                    totalHouseholdsElem.textContent = data.totalHouseholds || '0';
-                    totalMembersElem.textContent = data.totalMembers || '0';
-                    totalChildrenElem.textContent = data.totalChildren || '0';
                 } catch (error) {
-                    showMessage('Failed to fetch counts.', 'bg-red-200 text-red-800');
                     console.error('Error fetching counts:', error);
                 }
             }
-
-            // Fetch and display records
+            
+            // Fetch all records from the API
             async function fetchRecords(query = '') {
-                recordsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500"><span class="loading"></span> Loading records...</td></tr>`;
+                loadingOverlay.classList.remove('hidden');
                 try {
-                    const url = query ? `${API_URL}?q=${encodeURIComponent(query)}` : API_URL;
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    allRecords = await response.json();
-                    displayRecords(allRecords);
+                    const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}`);
+                    const records = await response.json();
+                    allRecords = records;
+                    displayRecords(records);
                 } catch (error) {
-                    recordsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-500">Error loading records. Please check the API URL and try again.</td></tr>`;
-                    showMessage('Failed to fetch records.', 'bg-red-200 text-red-800');
                     console.error('Error fetching records:', error);
+                    recordsTable.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Failed to load records.</td></tr>`;
+                } finally {
+                    loadingOverlay.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
                 }
             }
 
+            // Function to display records in the table
             function displayRecords(records) {
+                recordsTable.innerHTML = '';
                 if (records.length === 0) {
-                    recordsTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">No records found.</td></tr>`;
+                    recordsTable.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No records found.</td></tr>`;
                     return;
                 }
-                
-                recordsTableBody.innerHTML = records.map(record => {
-                    const submittedDate = record.household.SubmittedDate ? new Date(record.household.SubmittedDate).toLocaleDateString() : 'N/A';
-                    return `
-                        <tr class="hover:bg-gray-100 transition-colors duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.household.HouseholdID}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.Address}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${submittedDate}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.BlockName || 'N/A'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button data-id="${record.household.HouseholdID}" class="view-btn text-blue-600 hover:text-blue-900 transition-colors duration-200 focus:outline-none focus:underline">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                            </td>
-                        </tr>
+                records.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.household.HouseholdID}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.Address}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.HouseholdHeadName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.BlockName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="edit.html?id=${record.household.HouseholdID}" class="text-green-600 hover:text-green-900 transition-colors duration-200 focus:outline-none focus:underline mr-4">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button data-id="${record.household.HouseholdID}" class="view-btn text-blue-600 hover:text-blue-900 transition-colors duration-200 focus:outline-none focus:underline">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
                     `;
-                }).join('');
+                    recordsTable.appendChild(row);
+                });
             }
-            
-            // View record details
-            recordsTableBody.addEventListener('click', (e) => {
-                if (e.target.closest('.view-btn')) {
-                    const householdId = e.target.closest('.view-btn').dataset.id;
-                    currentRecord = allRecords.find(r => r.household.HouseholdID === householdId);
-                    if (currentRecord) {
-                        showRecordDetails(currentRecord);
+
+            // Handle search input
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const query = e.target.value;
+                searchTimeout = setTimeout(() => {
+                    fetchRecords(query);
+                }, 300);
+            });
+
+            // Handle modal
+            recordsTable.addEventListener('click', (e) => {
+                const viewBtn = e.target.closest('.view-btn');
+                if (viewBtn) {
+                    const householdId = viewBtn.dataset.id;
+                    const record = allRecords.find(r => r.household.HouseholdID === householdId);
+                    if (record) {
+                        currentRecord = record;
+                        editBtn.href = `edit.html?id=${record.household.HouseholdID}`;
+                        displayRecordInModal(record);
                     }
                 }
             });
+
+            closeModalBtn.addEventListener('click', () => {
+                recordModal.classList.add('hidden');
+                currentRecord = null;
+            });
             
-            function showRecordDetails(record) {
-                let content = `
-                    <div class="space-y-4">
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Household Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm-condensed">
-                                <p><strong>Household ID:</strong> <span class="truncate-text">${record.household.HouseholdID}</span></p>
-                                <p><strong>Address:</strong> ${record.household.Address}</p>
-                                <p><strong>Block Name:</strong> ${record.household.BlockName}</p>
-                                <p><strong>Submitted Date:</strong> ${new Date(record.household.SubmittedDate).toLocaleDateString()}</p>
-                                <p><strong>Household Head:</strong> ${record.household.HouseholdHeadName}</p>
+            // Handle deletion
+            deleteBtn.addEventListener('click', async () => {
+                if (!currentRecord) return;
+                
+                // Use a custom modal-like approach since alert/confirm are disabled
+                const confirmDelete = await new Promise(resolve => {
+                    const confirmBox = document.createElement('div');
+                    confirmBox.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center';
+                    confirmBox.innerHTML = `
+                        <div class="bg-white rounded-lg p-6 shadow-xl text-center">
+                            <p class="text-lg font-bold mb-4">Are you sure you want to delete this record?</p>
+                            <p class="text-gray-600 mb-6">This action cannot be undone.</p>
+                            <div class="flex justify-center gap-4">
+                                <button id="cancelDelete" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg">Cancel</button>
+                                <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg">Delete</button>
                             </div>
                         </div>
-                `;
-
-                // Members
-                if (record.members && record.members.length > 0) {
-                    content += `
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Members</h3>
-                            <div class="space-y-4 text-sm-condensed">
                     `;
-                    record.members.forEach((member) => {
-                        content += `
-                            <div class="border-b border-gray-300 pb-2">
-                                <p><strong>Name:</strong> ${member.firstName} ${member.lastName}</p>
-                                <p><strong>Contact:</strong> ${member.contactNumber}</p>
-                                <p><strong>Email:</strong> ${member.email}</p>
-                                <p><strong>Status:</strong> ${member.memberStatus}</p>
-                            </div>
-                        `;
+                    document.body.appendChild(confirmBox);
+                    document.getElementById('cancelDelete').addEventListener('click', () => {
+                        confirmBox.remove();
+                        resolve(false);
                     });
-                    content += `</div></div>`;
-                }
-
-                // Children
-                if (record.children && record.children.length > 0) {
-                    content += `
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Children</h3>
-                            <div class="space-y-4 text-sm-condensed">
-                    `;
-                    record.children.forEach((child) => {
-                        content += `
-                            <div class="border-b border-gray-300 pb-2">
-                                <p><strong>Name:</strong> ${child.firstName} ${child.lastName} (${child.age} yrs)</p>
-                                <p><strong>Baptism:</strong> ${child.baptised ? 'Yes' : 'No'} (${child.churchOfBaptism || 'N/A'})</p>
-                                <p><strong>First Communion:</strong> ${child.firstCommunion ? 'Yes' : 'No'} (${child.churchOfFirstCommunion || 'N/A'})</p>
-                                <p><strong>Confirmation:</strong> ${child.confirmation ? 'Yes' : 'No'} (${child.churchOfConfirmation || 'N/A'})</p>
-                            </div>
-                        `;
+                    document.getElementById('confirmDelete').addEventListener('click', () => {
+                        confirmBox.remove();
+                        resolve(true);
                     });
-                    content += `</div></div>`;
-                }
-                
-                modalContent.innerHTML = content;
-                recordModal.classList.remove('hidden');
-            }
-            
-            // Delete functionality
-            deleteBtn.addEventListener('click', () => {
-                hideRecordModal(); // Hide the details modal first
-                showMessage('Are you sure you want to delete this record? This action cannot be undone.', 'bg-red-200 text-red-800', true);
-            });
+                });
 
-            confirmYesBtn.addEventListener('click', async () => {
-                hideConfirmModal();
-                if (!currentRecord) {
-                    showMessage('No record selected for deletion.', 'bg-red-200 text-red-800');
-                    return;
-                }
+                if (!confirmDelete) return;
 
                 const payload = {
                     action: 'deleteRecord',
@@ -387,7 +288,8 @@
                     });
 
                     showMessage('Record deleted successfully.', 'bg-green-200 text-green-800');
-                    fetchRecords();
+                    recordModal.classList.add('hidden');
+                    fetchRecords(); // Refresh the list
                     fetchCounts();
                 } catch (error) {
                     showMessage('An error occurred during deletion.', 'bg-red-200 text-red-800');
@@ -402,22 +304,68 @@
                 document.body.innerHTML = printContent;
                 window.print();
                 document.body.innerHTML = originalBody;
-                window.location.reload();
+                window.location.reload(); // Reload to restore functionality
             });
 
-            // Search functionality
-            searchInput.addEventListener('keyup', (e) => {
-                const query = e.target.value;
-                if (query.length > 2 || query.length === 0) {
-                    fetchRecords(query);
+            // Function to display full record details in the modal
+            function displayRecordInModal(record) {
+                let content = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Household ID</p>
+                            <h3 class="text-lg font-bold text-gray-800">${record.household.HouseholdID}</h3>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Address</p>
+                            <h3 class="text-lg font-bold text-gray-800">${record.household.Address}</h3>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Household Head</p>
+                            <h3 class="text-lg font-bold text-gray-800">${record.household.HouseholdHeadName}</h3>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Block Name</p>
+                            <h3 class="text-lg font-bold text-gray-800">${record.household.BlockName}</h3>
+                        </div>
+                    </div>
+                `;
+
+                if (record.members && record.members.length > 0) {
+                    content += `<h3 class="text-xl font-bold mt-6 mb-2">Members</h3><div class="space-y-4">`;
+                    record.members.forEach(member => {
+                        content += `
+                            <div class="p-4 bg-gray-100 rounded-lg">
+                                <p class="font-semibold">${member.firstName} ${member.lastName}</p>
+                                <p class="text-sm text-gray-600">ID: ${member.MemberID}</p>
+                                <p class="text-sm text-gray-600">Contact: ${member.contactNumber || 'N/A'}</p>
+                                <p class="text-sm text-gray-600">Email: ${member.email || 'N/A'}</p>
+                                <p class="text-sm text-gray-600">Gender: ${member.gender || 'N/A'}</p>
+                            </div>
+                        `;
+                    });
+                    content += `</div>`;
                 }
-            });
-            
-            // Refresh button
-            refreshBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                fetchRecords();
-            });
+
+                if (record.children && record.children.length > 0) {
+                    content += `<h3 class="text-xl font-bold mt-6 mb-2">Children</h3><div class="space-y-4">`;
+                    record.children.forEach(child => {
+                        content += `
+                            <div class="p-4 bg-gray-100 rounded-lg">
+                                <p class="font-semibold">${child.firstName} ${child.lastName}</p>
+                                <p class="text-sm text-gray-600">ID: ${child.ChildID}</p>
+                                <p class="text-sm text-gray-600">Date of Birth: ${child.dateOfBirth || 'N/A'}</p>
+                                <p class="text-sm text-gray-600">Baptised: ${child.baptised || 'N/A'}</p>
+                                <p class="text-sm text-gray-600">First Communion: ${child.firstCommunion || 'N/A'}</p>
+                                <p class="text-sm text-gray-600">Confirmation: ${child.confirmation || 'N/A'}</p>
+                            </div>
+                        `;
+                    });
+                    content += `</div>`;
+                }
+                
+                modalContent.innerHTML = content;
+                recordModal.classList.remove('hidden');
+            }
 
             // Initial data fetch
             fetchCounts();
