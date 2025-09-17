@@ -29,328 +29,547 @@
         .bg-gradient-green {
             background: linear-gradient(135deg, #059669, #10b981);
         }
-        .message-box {
-            transition: opacity 0.3s ease-in-out;
+        .bg-gradient-red {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
         }
-        .hidden {
-            display: none;
+        .sub-section {
+            border-left: 4px solid #d1d5db;
+            padding-left: 1rem;
+            margin-left: 1rem;
+            margin-top: 1rem;
         }
-        .btn-primary {
-            @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300;
+        .form-input {
+            @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300;
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center p-4">
-
-    <!-- Navigation Bar -->
-    <nav class="w-full max-w-4xl p-4 mb-8 bg-white rounded-xl shadow-md flex justify-between items-center">
-        <h1 class="text-xl font-bold text-gray-800">Census App</h1>
-        <div class="space-x-4">
-            <a href="index.html" class="text-blue-600 font-semibold hover:text-blue-800">Census Form</a>
-            <a href="admin.html" class="text-gray-600 hover:text-blue-800">Admin Dashboard</a>
-        </div>
-    </nav>
-    
-    <div class="max-w-4xl w-full mx-auto p-4">
-        <h1 class="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-2">Our Lady of Fatima Shrine</h1>
-        <h2 class="text-xl md:text-2xl font-semibold text-center text-gray-700 mb-8">Census Form</h2>
-
-        <div id="messageBox" class="message-box hidden opacity-0 transition-opacity"></div>
-
-        <form id="censusForm" class="space-y-6">
-            <!-- Household Section -->
-            <div class="card p-6 md:p-8">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-home mr-3 text-blue-600"></i>Household Details
-                </h3>
+<body class="p-8 md:p-12">
+    <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 md:p-12">
+        <header class="text-center mb-10">
+            <img src="https://placehold.co/150x150/374151/FFFFFF?text=Logo" alt="Our Lady of Fatima Logo" class="mx-auto mb-4 rounded-full shadow-lg">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Our Lady of Fatima Shrine</h1>
+            <p class="text-gray-600 text-lg">Household Census Form</p>
+            <div id="messageBox" class="mt-4 p-4 rounded-lg text-sm text-center font-semibold hidden"></div>
+        </header>
+        
+        <form id="censusForm" class="space-y-10">
+            <div class="form-section bg-blue-50 text-gray-800">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-house"></i> Household Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="HouseholdID" class="block text-gray-700 font-medium mb-1">Household ID</label>
-                        <input type="text" id="HouseholdID" name="HouseholdID" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Block A - 101" required>
+                    <div class="space-y-2">
+                        <label for="blockName" class="block font-medium">Block Name</label>
+                        <input type="text" id="blockName" name="blockName" class="form-input" required>
                     </div>
-                    <div>
-                        <label for="BlockName" class="block text-gray-700 font-medium mb-1">Block Name</label>
-                        <input type="text" id="BlockName" name="BlockName" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Block A" required>
+                    <div class="space-y-2">
+                        <label for="residentialAddress" class="block font-medium">Residential Address</label>
+                        <input type="text" id="residentialAddress" name="residentialAddress" class="form-input" required>
                     </div>
-                    <div class="md:col-span-2">
-                        <label for="Address" class="block text-gray-700 font-medium mb-1">Address</label>
-                        <textarea id="Address" name="Address" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Enter your full address" required></textarea>
+                    <div class="space-y-2 col-span-1 md:col-span-2">
+                        <label for="contactInformation" class="block font-medium">Contact Information (Main Member)</label>
+                        <input type="tel" id="contactInformation" name="contactInformation" class="form-input" required>
                     </div>
                 </div>
             </div>
 
-            <!-- Members Section -->
-            <div class="card p-6 md:p-8">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-users mr-3 text-blue-600"></i>Family Members
-                </h3>
-                <div id="membersContainer" class="space-y-4"></div>
-                <button type="button" id="addMemberBtn" class="mt-4 w-full py-2 px-4 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors duration-300">
-                    Add another Family Member
+            <div class="form-section bg-green-50 text-gray-800">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-user-group"></i> Members' Information</h2>
+                <div id="membersContainer" class="space-y-6">
+                    </div>
+                <button type="button" id="addMemberBtn" class="mt-6 w-full md:w-auto px-6 py-3 bg-gradient-green text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <i class="fa-solid fa-plus mr-2"></i> Add Another Member
                 </button>
             </div>
 
-            <!-- Children Section -->
-            <div class="card p-6 md:p-8">
-                <h3 class="text-2xl font-bold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-child mr-3 text-blue-600"></i>Children (under 18)
-                </h3>
-                <div id="childrenContainer" class="space-y-4"></div>
-                <button type="button" id="addChildBtn" class="mt-4 w-full py-2 px-4 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600 transition-colors duration-300">
-                    Add another Child
+            <div class="form-section bg-red-50 text-gray-800">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-child"></i> Children's Information</h2>
+                <div id="childrenContainer" class="space-y-6">
+                    </div>
+                <button type="button" id="addChildBtn" class="mt-6 w-full md:w-auto px-6 py-3 bg-gradient-red text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <i class="fa-solid fa-plus mr-2"></i> Add Another Child
                 </button>
             </div>
 
-            <!-- Submit Button -->
-            <div class="text-center">
-                <button type="submit" class="w-full md:w-auto btn-primary">
-                    <i class="fas fa-check-circle mr-2"></i>Submit Form
+            <div class="flex justify-center">
+                <button type="submit" id="submitBtn" class="w-full md:w-64 px-8 py-4 bg-gradient-blue text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                    Submit Census Form
                 </button>
             </div>
         </form>
     </div>
 
     <script>
+        // Paste your Google Apps Script Web App URL here
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyUDc9DxK686AiqbijU1g1bFYZjLibMOMvKZifRxdv3WU8CLj69Zhty6H6FZRdnpAbwVA/exec'; // *** IMPORTANT: REPLACE THIS WITH YOUR DEPLOYED URL ***
+        
         document.addEventListener('DOMContentLoaded', () => {
-            const API_URL = "https://script.google.com/macros/s/AKfycbzDmCUNZYLbjqTAg-IMkyZHaX9B1RXrkT_0YBig9vF984c1mdmhzWPaYhxVO__qBnYXcQ/exec"; // Replace with your Google Apps Script URL
+            const addMemberBtn = document.getElementById('addMemberBtn');
+            const addChildBtn = document.getElementById('addChildBtn');
             const censusForm = document.getElementById('censusForm');
             const membersContainer = document.getElementById('membersContainer');
             const childrenContainer = document.getElementById('childrenContainer');
-            const addMemberBtn = document.getElementById('addMemberBtn');
-            const addChildBtn = document.getElementById('addChildBtn');
             const messageBox = document.getElementById('messageBox');
 
             let memberCount = 0;
             let childCount = 0;
 
-            const removeParent = (event) => {
-                event.target.closest('.card').remove();
-            };
-
-            const addMemberForm = () => {
+            function addMemberForm() {
                 memberCount++;
-                const memberCard = document.createElement('div');
-                memberCard.className = 'card';
-                memberCard.innerHTML = `
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'card';
+                memberDiv.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-xl font-semibold text-gray-700">Family Member ${memberCount}</h4>
-                        ${memberCount > 1 ? '<button type="button" class="text-red-500 hover:text-red-700 remove-btn"><i class="fas fa-times-circle"></i></button>' : ''}
+                        <h3 class="text-lg font-bold">Member #${memberCount}</h3>
+                        <button type="button" class="remove-btn text-gray-400 hover:text-red-500 transition duration-300" data-id="${memberCount}"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-gray-700 font-medium mb-1">First Name</label>
-                            <input type="text" name="memberFirstName" class="w-full p-2 border border-gray-300 rounded-lg" required>
+                            <label class="block font-medium">First Name</label>
+                            <input type="text" name="member-${memberCount}-firstName" class="form-input" required>
                         </div>
                         <div>
-                            <label class="block text-gray-700 font-medium mb-1">Last Name</label>
-                            <input type="text" name="memberLastName" class="w-full p-2 border border-gray-300 rounded-lg" required>
+                            <label class="block font-medium">Last Name</label>
+                            <input type="text" name="member-${memberCount}-lastName" class="form-input" required>
                         </div>
                         <div>
-                            <label class="block text-gray-700 font-medium mb-1">Date of Birth</label>
-                            <input type="date" name="memberDateOfBirth" class="w-full p-2 border border-gray-300 rounded-lg" required>
+                            <label class="block font-medium">Date of Birth</label>
+                            <input type="date" name="member-${memberCount}-dateOfBirth" class="form-input" required>
                         </div>
                         <div>
-                            <label class="block text-gray-700 font-medium mb-1">Relationship to Head</label>
-                            <input type="text" name="memberRelationship" class="w-full p-2 border border-gray-300 rounded-lg" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Catholic</label>
-                            <select name="memberCatholic" class="w-full p-2 border border-gray-300 rounded-lg" required>
+                            <label class="block font-medium">Catholic?</label>
+                            <select name="member-${memberCount}-catholic" class="form-input" required>
+                                <option value="">Select...</option>
                                 <option value="Yes">Yes</option>
                                 <option value="No">No</option>
                             </select>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-gray-700 font-medium mb-1">Church Activities/Organizations</label>
-                            <input type="text" name="memberChurchActivities" class="w-full p-2 border border-gray-300 rounded-lg">
+                        <div>
+                            <label class="block font-medium">Occupation</label>
+                            <input type="text" name="member-${memberCount}-occupation" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church Activities</label>
+                            <input type="text" name="member-${memberCount}-churchActivities" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Solidarity/Ministry</label>
+                            <input type="text" name="member-${memberCount}-solidarityMinistry" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Leadership</label>
+                            <input type="text" name="member-${memberCount}-leadership" class="form-input">
                         </div>
                     </div>
-                `;
-                membersContainer.appendChild(memberCard);
-                if (memberCard.querySelector('.remove-btn')) {
-                    memberCard.querySelector('.remove-btn').addEventListener('click', removeParent);
-                }
-            };
 
-            const addChildForm = () => {
-                childCount++;
-                const childCard = document.createElement('div');
-                childCard.className = 'card';
-                childCard.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-xl font-semibold text-gray-700">Child ${childCount}</h4>
-                        <button type="button" class="text-red-500 hover:text-red-700 remove-btn"><i class="fas fa-times-circle"></i></button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">First Name</label>
-                            <input type="text" name="childFirstName" class="w-full p-2 border border-gray-300 rounded-lg" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Last Name</label>
-                            <input type="text" name="childLastName" class="w-full p-2 border border-gray-300 rounded-lg" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Date of Birth</label>
-                            <input type="date" name="childDateOfBirth" class="w-full p-2 border border-gray-300 rounded-lg" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Catholic</label>
-                            <select name="childCatholic" class="w-full p-2 border border-gray-300 rounded-lg" required>
-                                <option value="Yes">Yes</option>
+                    <div class="sub-section">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Baptism</h4>
+                        <div class="space-y-2">
+                            <label class="block font-medium">Baptised?</label>
+                            <select name="member-${memberCount}-baptised" class="form-input baptized-select">
                                 <option value="No">No</option>
+                                <option value="Yes">Yes</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Church Activities</label>
-                            <input type="text" name="childChurchActivities" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Baptised</label>
-                            <select name="childBaptised" class="w-full p-2 border border-gray-300 rounded-lg">
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Baptism Date</label>
-                            <input type="date" name="childBaptismDate" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Church of Baptism</label>
-                            <input type="text" name="childChurchOfBaptism" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">First Communion</label>
-                            <select name="childFirstCommunion" class="w-full p-2 border border-gray-300 rounded-lg">
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">First Communion Date</label>
-                            <input type="date" name="childFirstCommunionDate" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Church of First Communion</label>
-                            <input type="text" name="childChurchOfFirstCommunion" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Confirmation</label>
-                            <select name="childConfirmation" class="w-full p-2 border border-gray-300 rounded-lg">
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Confirmation Date</label>
-                            <input type="date" name="childConfirmationDate" class="w-full p-2 border border-gray-300 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-1">Church of Confirmation</label>
-                            <input type="text" name="childChurchOfConfirmation" class="w-full p-2 border border-gray-300 rounded-lg">
+                        <div class="baptised-fields hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Baptism</label>
+                                <input type="date" name="member-${memberCount}-baptismDate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Registration Number</label>
+                                <input type="text" name="member-${memberCount}-baptismRegistrationNo" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Baptism</label>
+                                <input type="text" name="member-${memberCount}-churchOfBaptism" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Location of Church</label>
+                                <input type="text" name="member-${memberCount}-locationOfChurch" class="form-input">
+                            </div>
                         </div>
                     </div>
-                `;
-                childrenContainer.appendChild(childCard);
-                childCard.querySelector('.remove-btn').addEventListener('click', removeParent);
-            };
 
-            addMemberBtn.addEventListener('click', addMemberForm);
-            addChildBtn.addEventListener('click', addChildForm);
+                    <div class="sub-section">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">First Communion</h4>
+                        <div class="space-y-2">
+                            <label class="block font-medium">1st Communion?</label>
+                            <select name="member-${memberCount}-firstCommunion" class="form-input communion-select">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="communion-fields hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date 1st Communion</label>
+                                <input type="date" name="member-${memberCount}-firstCommunionDate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of 1st Communion</label>
+                                <input type="text" name="member-${memberCount}-churchOfFirstCommunion" class="form-input">
+                            </div>
+                        </div>
+                    </div>
 
-            // Initial forms
-            addMemberForm();
-            addChildForm();
+                    <div class="sub-section">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Confirmation</h4>
+                        <div class="space-y-2">
+                            <label class="block font-medium">Confirmed?</label>
+                            <select name="member-${memberCount}-confirmation" class="form-input confirmation-select">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="confirmation-fields hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Confirmation</label>
+                                <input type="date" name="member-${memberCount}-confirmationDate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Confirmation</label>
+                                <input type="text" name="member-${memberCount}-churchOfConfirmation" class="form-input">
+                            </div>
+                        </div>
+                    </div>
 
-            // Handle form submission
-            censusForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+                    <div class="sub-section">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Marital Status</h4>
+                        <div class="space-y-2">
+                            <label class="block font-medium">Marital Status</label>
+                            <select name="member-${memberCount}-maritalStatus" class="form-input marital-status-select">
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Widower">Widow(er)</option>
+                            </select>
+                        </div>
+                        <div class="marital-fields hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Civil Court Marriage Date</label>
+                                <input type="date" name="member-${memberCount}-civilCourtMarriageDate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church Marriage Date</label>
+                                <input type="date" name="member-${memberCount}-churchMarriageDate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church Marriage Place</label>
+                                <input type="text" name="member-${memberCount}-churchMarriagePlace" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Divorced?</label>
+                                <select name="member-${memberCount}-divorced" class="form-input">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
-                const formData = new FormData(censusForm);
-                const household = {
-                    HouseholdID: formData.get('HouseholdID'),
-                    BlockName: formData.get('BlockName'),
-                    Address: formData.get('Address'),
-                };
+                    <div class="sub-section">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Dikabelo</h4>
+                        <div class="space-y-2">
+                            <label class="block font-medium">Dikabelo?</label>
+                            <select name="member-${memberCount}-dikabelo" class="form-input dikabelo-select">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="dikabelo-fields hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Last Dikabelo</label>
+                                <input type="date" name="member-${memberCount}-dateOfLastDikabelo" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            membersContainer.appendChild(memberDiv);
+            memberDiv.querySelector('.remove-btn').addEventListener('click', () => memberDiv.remove());
+            setupConditionalFields(memberDiv);
+        }
 
-                const members = [];
-                document.querySelectorAll('#membersContainer .card').forEach((card, index) => {
-                    const memberData = {
-                        firstName: card.querySelector('[name="memberFirstName"]').value,
-                        lastName: card.querySelector('[name="memberLastName"]').value,
-                        dateOfBirth: card.querySelector('[name="memberDateOfBirth"]').value,
-                        relationship: card.querySelector('[name="memberRelationship"]').value,
-                        catholic: card.querySelector('[name="memberCatholic"]').value,
-                        churchActivities: card.querySelector('[name="memberChurchActivities"]').value,
-                    };
-                    members.push(memberData);
+        function addChildForm() {
+            childCount++;
+            const childDiv = document.createElement('div');
+            childDiv.className = 'card';
+            childDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Child #${childCount}</h3>
+                    <button type="button" class="remove-btn text-gray-400 hover:text-red-500 transition duration-300" data-id="${childCount}"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium">First Name</label>
+                        <input type="text" name="child-${childCount}-firstName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="block font-medium">Last Name</label>
+                        <input type="text" name="child-${childCount}-lastName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="block font-medium">Date of Birth</label>
+                        <input type="date" name="child-${childCount}-dateOfBirth" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="block font-medium">Age</label>
+                        <input type="number" name="child-${childCount}-age" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="block font-medium">Catholic?</label>
+                        <select name="child-${childCount}-catholic" class="form-input" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium">Church Activities</label>
+                        <input type="text" name="child-${childCount}-churchActivities" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="sub-section">
+                    <h4 class="font-bold text-sm text-gray-600 mb-2">Baptism</h4>
+                    <div class="space-y-2">
+                        <label class="block font-medium">Baptised?</label>
+                        <select name="child-${childCount}-baptised" class="form-input baptized-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="baptised-fields hidden mt-2 space-y-2">
+                        <div>
+                            <label class="block font-medium">Date of Baptism</label>
+                            <input type="date" name="child-${childCount}-baptismDate" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Registration Number</label>
+                            <input type="text" name="child-${childCount}-baptismRegistrationNo" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church of Baptism</label>
+                            <input type="text" name="child-${childCount}-churchOfBaptism" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Location of Church</label>
+                            <input type="text" name="child-${childCount}-locationOfChurch" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h4 class="font-bold text-sm text-gray-600 mb-2">First Communion</h4>
+                    <div class="space-y-2">
+                        <label class="block font-medium">1st Communion?</label>
+                        <select name="child-${childCount}-firstCommunion" class="form-input communion-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="communion-fields hidden mt-2 space-y-2">
+                        <div>
+                            <label class="block font-medium">Date 1st Communion</label>
+                            <input type="date" name="child-${childCount}-firstCommunionDate" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church of 1st Communion</label>
+                            <input type="text" name="child-${childCount}-churchOfFirstCommunion" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-section">
+                    <h4 class="font-bold text-sm text-gray-600 mb-2">Confirmation</h4>
+                    <div class="space-y-2">
+                        <label class="block font-medium">Confirmed?</label>
+                        <select name="child-${childCount}-confirmation" class="form-input confirmation-select">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="confirmation-fields hidden mt-2 space-y-2">
+                        <div>
+                            <label class="block font-medium">Date of Confirmation</label>
+                            <input type="date" name="child-${childCount}-confirmationDate" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church of Confirmation</label>
+                            <input type="text" name="child-${childCount}-churchOfConfirmation" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            `;
+            childrenContainer.appendChild(childDiv);
+            childDiv.querySelector('.remove-btn').addEventListener('click', () => childDiv.remove());
+            setupConditionalFields(childDiv);
+        }
+
+        // Add first member and child forms on load
+        addMemberForm();
+        addChildForm();
+
+        addMemberBtn.addEventListener('click', addMemberForm);
+        addChildBtn.addEventListener('click', addChildForm);
+
+        // Conditional fields logic
+        function setupConditionalFields(container) {
+            container.querySelectorAll('.baptized-select').forEach(select => {
+                const baptizedFields = select.closest('.sub-section').querySelector('.baptised-fields');
+                select.addEventListener('change', () => {
+                    if (select.value === 'Yes') {
+                        baptizedFields.classList.remove('hidden');
+                    } else {
+                        baptizedFields.classList.add('hidden');
+                    }
                 });
-
-                const children = [];
-                document.querySelectorAll('#childrenContainer .card').forEach((card, index) => {
-                    const childData = {
-                        firstName: card.querySelector('[name="childFirstName"]').value,
-                        lastName: card.querySelector('[name="childLastName"]').value,
-                        dateOfBirth: card.querySelector('[name="childDateOfBirth"]').value,
-                        catholic: card.querySelector('[name="childCatholic"]').value,
-                        churchActivities: card.querySelector('[name="childChurchActivities"]').value,
-                        baptised: card.querySelector('[name="childBaptised"]').value,
-                        baptismDate: card.querySelector('[name="childBaptismDate"]').value,
-                        churchOfBaptism: card.querySelector('[name="childChurchOfBaptism"]').value,
-                        firstCommunion: card.querySelector('[name="childFirstCommunion"]').value,
-                        firstCommunionDate: card.querySelector('[name="childFirstCommunionDate"]').value,
-                        churchOfFirstCommunion: card.querySelector('[name="childChurchOfFirstCommunion"]').value,
-                        confirmation: card.querySelector('[name="childConfirmation"]').value,
-                        confirmationDate: card.querySelector('[name="childConfirmationDate"]').value,
-                        churchOfConfirmation: card.querySelector('[name="childChurchOfConfirmation"]').value,
-                    };
-                    children.push(childData);
-                });
-
-                const payload = {
-                    action: 'submitForm',
-                    household,
-                    members,
-                    children,
-                };
-
-                try {
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify(payload),
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    showMessage('Form submitted successfully! Thank you.', 'bg-green-200 text-green-800');
-                    censusForm.reset();
-                    membersContainer.innerHTML = '';
-                    childrenContainer.innerHTML = '';
-                    memberCount = 0;
-                    childCount = 0;
-                    addMemberForm();
-                    addChildForm();
-                } catch (error) {
-                    showMessage('An error occurred. Please try again.', 'bg-red-200 text-red-800');
-                    console.error('Error submitting form:', error);
-                }
             });
 
-            function showMessage(message, colorClass) {
-                messageBox.textContent = message;
-                messageBox.className = `mt-4 p-4 rounded-lg text-sm text-center font-semibold ${colorClass} visible`;
-                messageBox.classList.remove('hidden');
-                messageBox.style.opacity = '1';
-                setTimeout(() => {
-                    messageBox.style.opacity = '0';
-                    setTimeout(() => messageBox.classList.add('hidden'), 300);
-                }, 5000);
+            container.querySelectorAll('.communion-select').forEach(select => {
+                const communionFields = select.closest('.sub-section').querySelector('.communion-fields');
+                select.addEventListener('change', () => {
+                    if (select.value === 'Yes') {
+                        communionFields.classList.remove('hidden');
+                    } else {
+                        communionFields.classList.add('hidden');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.confirmation-select').forEach(select => {
+                const confirmationFields = select.closest('.sub-section').querySelector('.confirmation-fields');
+                select.addEventListener('change', () => {
+                    if (select.value === 'Yes') {
+                        confirmationFields.classList.remove('hidden');
+                    } else {
+                        confirmationFields.classList.add('hidden');
+                    }
+                });
+            });
+
+            container.querySelectorAll('.marital-status-select').forEach(select => {
+                const maritalFields = select.closest('.sub-section').querySelector('.marital-fields');
+                select.addEventListener('change', () => {
+                    if (select.value === 'Married') {
+                        maritalFields.classList.remove('hidden');
+                    } else {
+                        maritalFields.classList.add('hidden');
+                    }
+                });
+            });
+            
+            container.querySelectorAll('.dikabelo-select').forEach(select => {
+                const dikabeloFields = select.closest('.sub-section').querySelector('.dikabelo-fields');
+                select.addEventListener('change', () => {
+                    if (select.value === 'Yes') {
+                        dikabeloFields.classList.remove('hidden');
+                    } else {
+                        dikabeloFields.classList.add('hidden');
+                    }
+                });
+            });
+        }
+        
+        // Form submission logic
+        censusForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const householdData = {
+                BlockName: document.getElementById('blockName').value,
+                ResidentialAddress: document.getElementById('residentialAddress').value,
+                ContactInformation: document.getElementById('contactInformation').value
+            };
+
+            const membersData = [];
+            document.querySelectorAll('#membersContainer .card').forEach((memberDiv, index) => {
+                const member = {};
+                member.FirstName = memberDiv.querySelector(`input[name="member-${index+1}-firstName"]`).value;
+                member.LastName = memberDiv.querySelector(`input[name="member-${index+1}-lastName"]`).value;
+                member.DateOfBirth = memberDiv.querySelector(`input[name="member-${index+1}-dateOfBirth"]`).value;
+                member.Catholic = memberDiv.querySelector(`select[name="member-${index+1}-catholic"]`).value;
+                member.Occupation = memberDiv.querySelector(`input[name="member-${index+1}-occupation"]`).value;
+                member.ChurchActivities = memberDiv.querySelector(`input[name="member-${index+1}-churchActivities"]`).value;
+                member.SolidarityMinistry = memberDiv.querySelector(`input[name="member-${index+1}-solidarityMinistry"]`).value;
+                member.Leadership = memberDiv.querySelector(`input[name="member-${index+1}-leadership"]`).value;
+                member.Baptised = memberDiv.querySelector(`select[name="member-${index+1}-baptised"]`).value;
+                member.BaptismDate = memberDiv.querySelector(`input[name="member-${index+1}-baptismDate"]`).value;
+                member.BaptismRegistrationNo = memberDiv.querySelector(`input[name="member-${index+1}-baptismRegistrationNo"]`).value;
+                member.ChurchOfBaptism = memberDiv.querySelector(`input[name="member-${index+1}-churchOfBaptism"]`).value;
+                member.LocationOfChurch = memberDiv.querySelector(`input[name="member-${index+1}-locationOfChurch"]`).value;
+                member.FirstCommunion = memberDiv.querySelector(`select[name="member-${index+1}-firstCommunion"]`).value;
+                member.FirstCommunionDate = memberDiv.querySelector(`input[name="member-${index+1}-firstCommunionDate"]`).value;
+                member.ChurchOfFirstCommunion = memberDiv.querySelector(`input[name="member-${index+1}-churchOfFirstCommunion"]`).value;
+                member.Confirmation = memberDiv.querySelector(`select[name="member-${index+1}-confirmation"]`).value;
+                member.ConfirmationDate = memberDiv.querySelector(`input[name="member-${index+1}-confirmationDate"]`).value;
+                member.ChurchOfConfirmation = memberDiv.querySelector(`input[name="member-${index+1}-churchOfConfirmation"]`).value;
+                member.MaritalStatus = memberDiv.querySelector(`select[name="member-${index+1}-maritalStatus"]`).value;
+                member.CivilCourtMarriageDate = memberDiv.querySelector(`input[name="member-${index+1}-civilCourtMarriageDate"]`).value;
+                member.ChurchMarriageDate = memberDiv.querySelector(`input[name="member-${index+1}-churchMarriageDate"]`).value;
+                member.ChurchMarriagePlace = memberDiv.querySelector(`input[name="member-${index+1}-churchMarriagePlace"]`).value;
+                member.Divorced = memberDiv.querySelector(`select[name="member-${index+1}-divorced"]`).value;
+                member.Dikabelo = memberDiv.querySelector(`select[name="member-${index+1}-dikabelo"]`).value;
+                member.DateOfLastDikabelo = memberDiv.querySelector(`input[name="member-${index+1}-dateOfLastDikabelo"]`).value;
+                membersData.push(member);
+            });
+
+            const childrenData = [];
+            document.querySelectorAll('#childrenContainer .card').forEach((childDiv, index) => {
+                const child = {};
+                child.FirstName = childDiv.querySelector(`input[name="child-${index+1}-firstName"]`).value;
+                child.LastName = childDiv.querySelector(`input[name="child-${index+1}-lastName"]`).value;
+                child.DateOfBirth = childDiv.querySelector(`input[name="child-${index+1}-dateOfBirth"]`).value;
+                child.Age = childDiv.querySelector(`input[name="child-${index+1}-age"]`).value;
+                child.Catholic = childDiv.querySelector(`select[name="child-${index+1}-catholic"]`).value;
+                child.ChurchActivities = childDiv.querySelector(`input[name="child-${index+1}-churchActivities"]`).value;
+                child.Baptised = childDiv.querySelector(`select[name="child-${index+1}-baptised"]`).value;
+                child.BaptismDate = childDiv.querySelector(`input[name="child-${index+1}-baptismDate"]`).value;
+                child.BaptismRegistrationNo = childDiv.querySelector(`input[name="child-${index+1}-baptismRegistrationNo"]`).value;
+                child.ChurchOfBaptism = childDiv.querySelector(`input[name="child-${index+1}-churchOfBaptism"]`).value;
+                child.LocationOfChurch = childDiv.querySelector(`input[name="child-${index+1}-locationOfChurch"]`).value;
+                child.FirstCommunion = childDiv.querySelector(`select[name="child-${index+1}-firstCommunion"]`).value;
+                child.FirstCommunionDate = childDiv.querySelector(`input[name="child-${index+1}-firstCommunionDate"]`).value;
+                child.ChurchOfFirstCommunion = childDiv.querySelector(`input[name="child-${index+1}-churchOfFirstCommunion"]`).value;
+                child.Confirmation = childDiv.querySelector(`select[name="child-${index+1}-confirmation"]`).value;
+                child.ConfirmationDate = childDiv.querySelector(`input[name="child-${index+1}-confirmationDate"]`).value;
+                child.ChurchOfConfirmation = childDiv.querySelector(`input[name="child-${index+1}-churchOfConfirmation"]`).value;
+                childrenData.push(child);
+            });
+
+            const payload = {
+                action: 'submitData',
+                household: householdData,
+                members: membersData,
+                children: childrenData
+            };
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Required for Google Apps Script
+                    body: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                showMessage('Form submitted successfully! Thank you.', 'bg-green-200 text-green-800');
+                censusForm.reset();
+                membersContainer.innerHTML = '';
+                childrenContainer.innerHTML = '';
+                memberCount = 0;
+                childCount = 0;
+                addMemberForm();
+                addChildForm();
+            } catch (error) {
+                showMessage('An error occurred. Please try again.', 'bg-red-200 text-red-800');
+                console.error('Error submitting form:', error);
             }
         });
+
+        function showMessage(message, colorClass) {
+            messageBox.textContent = message;
+            messageBox.className = `mt-4 p-4 rounded-lg text-sm text-center font-semibold ${colorClass} visible`;
+            messageBox.classList.remove('hidden');
+        }
+    });
     </script>
 </body>
 </html>
-
