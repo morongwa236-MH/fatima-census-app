@@ -30,249 +30,749 @@
         }
         .text-sm-condensed {
             font-size: 0.8rem;
+            line-height: 1rem;
         }
-        .modal {
-            transition: all 0.3s ease-in-out;
-        }
-        .modal.hidden {
-            opacity: 0;
-            visibility: hidden;
+        .sub-section {
+            border-left: 4px solid #d1d5db;
+            padding-left: 1rem;
+            margin-left: 1rem;
+            margin-top: 1rem;
         }
     </style>
 </head>
-<body class="p-6">
+<body>
+    <div id="messageBox" class="fixed top-4 right-4 z-50 p-4 rounded-lg text-sm text-center font-semibold shadow-lg hidden"></div>
 
-    <!-- Loading screen -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center">
-        <div class="flex flex-col items-center">
-            <div class="loading mb-4"></div>
-            <p class="text-gray-600 font-semibold">Loading data...</p>
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold text-center text-gray-800 my-8">Admin Dashboard</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="admin-card text-center p-6 bg-blue-100 border-l-4 border-blue-500">
+                <p class="text-gray-500 font-semibold">Households</p>
+                <p id="householdCount" class="text-4xl font-bold text-blue-800 mt-2">...</p>
+            </div>
+            <div class="admin-card text-center p-6 bg-green-100 border-l-4 border-green-500">
+                <p class="text-gray-500 font-semibold">Total Members</p>
+                <p id="memberCount" class="text-4xl font-bold text-green-800 mt-2">...</p>
+            </div>
+            <div class="admin-card text-center p-6 bg-purple-100 border-l-4 border-purple-500">
+                <p class="text-gray-500 font-semibold">Total Children</p>
+                <p id="childrenCount" class="text-4xl font-bold text-purple-800 mt-2">...</p>
+            </div>
+        </div>
+
+        <div class="admin-card mb-8">
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="relative flex-grow w-full">
+                    <input type="text" id="searchInput" placeholder="Search by name, address, or household ID..." class="w-full p-3 pl-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <button id="searchBtn" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-blue-700 transition-all w-full md:w-auto shadow-lg">Search</button>
+            </div>
+        </div>
+
+        <div id="resultsContainer" class="admin-card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Household Records</h2>
+            <div id="searchResults" class="space-y-4">
+                <div class="flex items-center justify-center p-8">
+                    <div class="loading"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto hidden" id="mainContent">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight mb-2">Census Admin Dashboard</h1>
-            <p class="text-lg text-gray-500">Manage and view census records.</p>
-        </header>
-
-        <!-- Stats and Search -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="admin-card text-center bg-blue-100 text-blue-800">
-                <h3 class="text-2xl font-bold" id="totalHouseholds">0</h3>
-                <p class="text-sm-condensed">Households</p>
-            </div>
-            <div class="admin-card text-center bg-green-100 text-green-800">
-                <h3 class="text-2xl font-bold" id="totalMembers">0</h3>
-                <p class="text-sm-condensed">Total Members</p>
-            </div>
-            <div class="admin-card text-center bg-purple-100 text-purple-800">
-                <h3 class="text-2xl font-bold" id="totalChildren">0</h3>
-                <p class="text-sm-condensed">Total Children</p>
-            </div>
-            <div class="admin-card bg-gray-100 p-4 rounded-lg flex items-center shadow-inner">
-                <i class="fas fa-search text-gray-400 mr-2"></i>
-                <input type="text" id="searchInput" placeholder="Search by name, address, or ID..." class="w-full bg-transparent border-none focus:ring-0 focus:outline-none placeholder-gray-400 text-sm">
-            </div>
-        </div>
-
-        <!-- Records Table -->
-        <div class="admin-card overflow-x-auto shadow-xl">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Household ID</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Household Head</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block Name</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="recordsTable" class="bg-white divide-y divide-gray-200">
-                    <!-- Records will be populated here -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Record View Modal -->
-    <div id="recordModal" class="modal fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="relative bg-white rounded-xl shadow-lg p-6 w-full max-w-4xl mx-4 my-8 transform transition-all sm:my-10 sm:max-w-5xl sm:p-8">
-            <div class="flex justify-between items-start mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Record Details</h2>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            <div id="modalContent" class="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
-                <!-- Record details will be populated here -->
-            </div>
-            <div class="mt-6 pt-4 border-t border-gray-200 flex justify-end items-center gap-4">
-                <a href="#" id="editBtn" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-colors">
+    <div id="recordModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 relative">
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl transition-all">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <div id="modalContent"></div>
+            <div class="mt-8 flex flex-col sm:flex-row justify-end gap-4">
+                <button id="editBtn" class="bg-yellow-500 text-white font-semibold py-3 px-6 rounded-full hover:bg-yellow-600 transition-all shadow-lg">
                     <i class="fas fa-edit mr-2"></i>Edit Record
-                </a>
-                <button id="deleteBtn" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition-colors">
+                </button>
+                <button id="deleteBtn" class="bg-red-500 text-white font-semibold py-3 px-6 rounded-full hover:bg-red-600 transition-all shadow-lg">
                     <i class="fas fa-trash-alt mr-2"></i>Delete Record
                 </button>
-                <button id="printBtn" class="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-400 transition-colors">
+                <button id="printBtn" class="bg-gray-500 text-white font-semibold py-3 px-6 rounded-full hover:bg-gray-600 transition-all shadow-lg">
                     <i class="fas fa-print mr-2"></i>Print
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Message Box -->
-    <div id="messageBox" class="fixed bottom-4 right-4 p-4 rounded-lg text-sm font-semibold transition-all duration-300 hidden"></div>
+    <div id="confirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative text-center">
+            <h3 class="text-xl font-bold mb-4">Confirm Deletion</h3>
+            <p id="confirmMessage" class="text-gray-600 mb-6">Are you sure you want to delete this record?</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-full hover:bg-gray-400 transition-all">Cancel</button>
+                <button id="confirmDeleteBtn" class="bg-red-500 text-white font-semibold py-2 px-6 rounded-full hover:bg-red-600 transition-all">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 relative">
+            <button id="closeEditModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl transition-all">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Edit Household Record</h2>
+
+            <form id="editForm">
+                <input type="hidden" id="editHouseholdID">
+
+                <div class="form-section bg-gray-100 border-l-4 border-blue-500 p-6 rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-home"></i>Household Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="editBlockName" class="block text-gray-700 font-semibold mb-2">Block Name</label>
+                            <input type="text" id="editBlockName" name="blockName" class="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="editResidentialAddress" class="block text-gray-700 font-semibold mb-2">Residential Address</label>
+                            <input type="text" id="editResidentialAddress" name="residentialAddress" class="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="col-span-1 md:col-span-2">
+                            <label for="editContactInformation" class="block text-gray-700 font-semibold mb-2">Contact Information</label>
+                            <input type="tel" id="editContactInformation" name="contactInformation" class="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section bg-gray-100 border-l-4 border-green-500 p-6 rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-users"></i>Members
+                    </h3>
+                    <div id="editMembersContainer" class="space-y-6"></div>
+                    <button type="button" id="addEditMemberBtn" class="mt-4 bg-green-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-green-600 transition-all">
+                        <i class="fas fa-user-plus mr-2"></i>Add Member
+                    </button>
+                </div>
+
+                <div class="form-section bg-gray-100 border-l-4 border-purple-500 p-6 rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-child"></i>Children (under 18)
+                    </h3>
+                    <div id="editChildrenContainer" class="space-y-6"></div>
+                    <button type="button" id="addEditChildBtn" class="mt-4 bg-purple-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-purple-600 transition-all">
+                        <i class="fas fa-plus-circle mr-2"></i>Add Child
+                    </button>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-4 px-12 rounded-full hover:bg-blue-700 transition-all shadow-lg text-lg">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const API_URL = 'https://script.google.com/macros/s/AKfycbzDmCUNZYLbjqTAg-IMkyZHaX9B1RXrkT_0YBig9vF984c1mdmhzWPaYhxVO__qBnYXcQ/exec'; // REMEMBER TO UPDATE THIS
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const mainContent = document.getElementById('mainContent');
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyUDc9DxK686AiqbijU1g1bFYZjLibMOMvKZifRxdv3WU8CLj69Zhty6H6FZRdnpAbwVA/exec'; // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED API URL ***
+
+        document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('searchInput');
-            const totalHouseholdsElem = document.getElementById('totalHouseholds');
-            const totalMembersElem = document.getElementById('totalMembers');
-            const totalChildrenElem = document.getElementById('totalChildren');
-            const recordsTable = document.getElementById('recordsTable');
+            const searchBtn = document.getElementById('searchBtn');
+            const searchResults = document.getElementById('searchResults');
+            const householdCountEl = document.getElementById('householdCount');
+            const memberCountEl = document.getElementById('memberCount');
+            const childrenCountEl = document.getElementById('childrenCount');
+
+            // Modals
             const recordModal = document.getElementById('recordModal');
             const modalContent = document.getElementById('modalContent');
             const closeModalBtn = document.getElementById('closeModalBtn');
             const editBtn = document.getElementById('editBtn');
             const deleteBtn = document.getElementById('deleteBtn');
             const printBtn = document.getElementById('printBtn');
-            const messageBox = document.getElementById('messageBox');
-
-            let allRecords = [];
-            let currentRecord = null;
             
-            // Function to display messages
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+            const editModal = document.getElementById('editModal');
+            const editForm = document.getElementById('editForm');
+            const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+            const editHouseholdID = document.getElementById('editHouseholdID');
+            const editBlockName = document.getElementById('editBlockName');
+            const editResidentialAddress = document.getElementById('editResidentialAddress');
+            const editContactInformation = document.getElementById('editContactInformation');
+            const editMembersContainer = document.getElementById('editMembersContainer');
+            const addEditMemberBtn = document.getElementById('addEditMemberBtn');
+            const editChildrenContainer = document.getElementById('editChildrenContainer');
+            const addEditChildBtn = document.getElementById('addEditChildBtn');
+
+            let currentRecord = null;
+            let memberCount = 0;
+            let childCount = 0;
+            
+            // Reusable message box
+            const messageBox = document.getElementById('messageBox');
             function showMessage(message, colorClass) {
                 messageBox.textContent = message;
-                messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg text-sm font-semibold ${colorClass}`;
-                messageBox.classList.remove('hidden');
+                messageBox.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-sm text-center font-semibold shadow-lg visible ${colorClass}`;
                 setTimeout(() => {
                     messageBox.classList.add('hidden');
                 }, 5000);
             }
 
-            // Fetch total counts from the API
+            // Fetch overall counts
             async function fetchCounts() {
                 try {
                     const response = await fetch(`${API_URL}?action=getCounts`);
-                    const counts = await response.json();
-                    if (counts) {
-                        totalHouseholdsElem.textContent = counts.totalHouseholds;
-                        totalMembersElem.textContent = counts.totalMembers;
-                        totalChildrenElem.textContent = counts.totalChildren;
-                    }
+                    const data = await response.json();
+                    householdCountEl.textContent = data.totalHouseholds;
+                    memberCountEl.textContent = data.totalMembers;
+                    childrenCountEl.textContent = data.totalChildren;
                 } catch (error) {
                     console.error('Error fetching counts:', error);
+                    householdCountEl.textContent = 'N/A';
+                    memberCountEl.textContent = 'N/A';
+                    childrenCountEl.textContent = 'N/A';
                 }
             }
-            
-            // Fetch all records from the API
+            fetchCounts(); // Initial load
+
+            // Fetch records
             async function fetchRecords(query = '') {
-                loadingOverlay.classList.remove('hidden');
+                searchResults.innerHTML = '<div class="flex items-center justify-center p-8"><div class="loading"></div></div>';
                 try {
                     const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}`);
-                    const records = await response.json();
-                    allRecords = records;
-                    displayRecords(records);
+                    const data = await response.json();
+                    displayRecords(data.records);
                 } catch (error) {
                     console.error('Error fetching records:', error);
-                    recordsTable.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Failed to load records.</td></tr>`;
-                } finally {
-                    loadingOverlay.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
+                    showMessage('Failed to load records. Please try again later.', 'bg-red-200 text-red-800');
+                    searchResults.innerHTML = '<p class="text-center text-gray-500">Failed to load records.</p>';
                 }
             }
+            fetchRecords(); // Initial load
 
-            // Function to display records in the table
+            searchBtn.addEventListener('click', () => {
+                const query = searchInput.value;
+                fetchRecords(query);
+            });
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+
             function displayRecords(records) {
-                recordsTable.innerHTML = '';
+                searchResults.innerHTML = '';
                 if (records.length === 0) {
-                    recordsTable.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No records found.</td></tr>`;
+                    searchResults.innerHTML = '<p class="text-center text-gray-500">No records found.</p>';
                     return;
                 }
                 records.forEach(record => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${record.household.HouseholdID}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.Address}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.HouseholdHeadName}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${record.household.BlockName}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="edit.html?id=${record.household.HouseholdID}" class="text-green-600 hover:text-green-900 transition-colors duration-200 focus:outline-none focus:underline mr-4">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <button data-id="${record.household.HouseholdID}" class="view-btn text-blue-600 hover:text-blue-900 transition-colors duration-200 focus:outline-none focus:underline">
-                                <i class="fas fa-eye"></i> View
+                    const recordDiv = document.createElement('div');
+                    recordDiv.className = 'admin-card border-l-4 border-blue-500 hover:bg-gray-50 transition-colors cursor-pointer';
+                    recordDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Household ID: ${record.household.HouseholdID}</h3>
+                                <p class="text-gray-600 mt-1">${record.household.ResidentialAddress}</p>
+                            </div>
+                            <button class="view-btn bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-md hover:bg-blue-600 transition-all" data-household-id="${record.household.HouseholdID}">
+                                <i class="fas fa-eye mr-2"></i>View
                             </button>
-                        </td>
+                        </div>
                     `;
-                    recordsTable.appendChild(row);
+                    searchResults.appendChild(recordDiv);
+                    recordDiv.querySelector('.view-btn').addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        showRecordModal(record);
+                    });
                 });
             }
 
-            // Handle search input
-            let searchTimeout;
-            searchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                const query = e.target.value;
-                searchTimeout = setTimeout(() => {
-                    fetchRecords(query);
-                }, 300);
+            function showRecordModal(record) {
+                currentRecord = record;
+                const household = record.household;
+                const members = record.members;
+                const children = record.children;
+
+                let contentHtml = `
+                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Household Record</h2>
+
+                    <div class="bg-gray-100 p-6 rounded-lg mb-6">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2"><i class="fas fa-home"></i> Household Information</h3>
+                        <p class="mb-2"><span class="font-semibold">Household ID:</span> ${household.HouseholdID}</p>
+                        <p class="mb-2"><span class="font-semibold">Residential Address:</span> ${household.ResidentialAddress}</p>
+                        <p class="mb-2"><span class="font-semibold">Block Name:</span> ${household.BlockName}</p>
+                        <p class="mb-2"><span class="font-semibold">Contact Information:</span> ${household.ContactInformation}</p>
+                        <p class="mb-2"><span class="font-semibold">Submission Timestamp:</span> ${household.SubmissionTimestamp}</p>
+                    </div>
+
+                    <div class="bg-gray-100 p-6 rounded-lg mb-6">
+                        <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center gap-2"><i class="fas fa-users"></i> Members</h3>
+                        ${members.length > 0 ? members.map(member => `
+                            <div class="bg-white p-4 rounded-lg shadow mb-4">
+                                <h4 class="text-lg font-bold mb-2">${member.FirstName} ${member.LastName}</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                    <p><span class="font-semibold">Member ID:</span> ${member.MemberID}</p>
+                                    <p><span class="font-semibold">Date of Birth:</span> ${member.DateOfBirth}</p>
+                                    <p><span class="font-semibold">Catholic:</span> ${member.Catholic}</p>
+                                    <p><span class="font-semibold">Occupation:</span> ${member.Occupation}</p>
+                                    <p><span class="font-semibold">Church Activities:</span> ${member.ChurchActivities}</p>
+                                    <p><span class="font-semibold">Solidarity Ministry:</span> ${member.SolidarityMinistry}</p>
+                                    <p><span class="font-semibold">Leadership:</span> ${member.Leadership}</p>
+                                    <p><span class="font-semibold">Marital Status:</span> ${member.MaritalStatus}</p>
+                                    <p><span class="font-semibold">Civil Court Marriage Date:</span> ${member.CivilCourtMarriageDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church Marriage Date:</span> ${member.ChurchMarriageDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church Marriage Place:</span> ${member.ChurchMarriagePlace || 'N/A'}</p>
+                                    <p><span class="font-semibold">Divorced:</span> ${member.Divorced || 'N/A'}</p>
+                                    <p><span class="font-semibold">Dikabelo:</span> ${member.Dikabelo || 'N/A'}</p>
+                                    <p><span class="font-semibold">Date of Last Dikabelo:</span> ${member.DateOfLastDikabelo || 'N/A'}</p>
+                                </div>
+                                <div class="sub-section mt-4">
+                                    <h5 class="font-bold text-sm mb-2">Sacraments</h5>
+                                    <p><span class="font-semibold">Baptised:</span> ${member.Baptised}</p>
+                                    <p><span class="font-semibold">Baptism Date:</span> ${member.BaptismDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Baptism Reg No:</span> ${member.BaptismRegistrationNo || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of Baptism:</span> ${member.ChurchOfBaptism || 'N/A'}</p>
+                                    <p><span class="font-semibold">Location of Church:</span> ${member.LocationOfChurch || 'N/A'}</p>
+                                    <p><span class="font-semibold">First Communion:</span> ${member.FirstCommunion}</p>
+                                    <p><span class="font-semibold">First Communion Date:</span> ${member.FirstCommunionDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of First Communion:</span> ${member.ChurchOfFirstCommunion || 'N/A'}</p>
+                                    <p><span class="font-semibold">Confirmation:</span> ${member.Confirmation}</p>
+                                    <p><span class="font-semibold">Confirmation Date:</span> ${member.ConfirmationDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of Confirmation:</span> ${member.ChurchOfConfirmation || 'N/A'}</p>
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-gray-500">No members found.</p>'}
+                    </div>
+
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <h3 class="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2"><i class="fas fa-child"></i> Children</h3>
+                        ${children.length > 0 ? children.map(child => `
+                            <div class="bg-white p-4 rounded-lg shadow mb-4">
+                                <h4 class="text-lg font-bold mb-2">${child.FirstName} ${child.LastName}</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                    <p><span class="font-semibold">Child ID:</span> ${child.ChildID}</p>
+                                    <p><span class="font-semibold">Date of Birth:</span> ${child.DateOfBirth}</p>
+                                    <p><span class="font-semibold">Age:</span> ${child.Age}</p>
+                                    <p><span class="font-semibold">Catholic:</span> ${child.Catholic}</p>
+                                    <p><span class="font-semibold">Church Activities:</span> ${child.ChurchActivities}</p>
+                                </div>
+                                <div class="sub-section mt-4">
+                                    <h5 class="font-bold text-sm mb-2">Sacraments</h5>
+                                    <p><span class="font-semibold">Baptised:</span> ${child.Baptised}</p>
+                                    <p><span class="font-semibold">Baptism Date:</span> ${child.BaptismDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Baptism Reg No:</span> ${child.BaptismRegistrationNo || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of Baptism:</span> ${child.ChurchOfBaptism || 'N/A'}</p>
+                                    <p><span class="font-semibold">Location of Church:</span> ${child.LocationOfChurch || 'N/A'}</p>
+                                    <p><span class="font-semibold">First Communion:</span> ${child.FirstCommunion}</p>
+                                    <p><span class="font-semibold">First Communion Date:</span> ${child.FirstCommunionDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of First Communion:</span> ${child.ChurchOfFirstCommunion || 'N/A'}</p>
+                                    <p><span class="font-semibold">Confirmation:</span> ${child.Confirmation}</p>
+                                    <p><span class="font-semibold">Confirmation Date:</span> ${child.ConfirmationDate || 'N/A'}</p>
+                                    <p><span class="font-semibold">Church of Confirmation:</span> ${child.ChurchOfConfirmation || 'N/A'}</p>
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-gray-500">No children found.</p>'}
+                    </div>
+                `;
+                modalContent.innerHTML = contentHtml;
+                recordModal.classList.remove('hidden');
+            }
+
+            // --- Edit Functionality ---
+            editBtn.addEventListener('click', () => {
+                recordModal.classList.add('hidden');
+                populateEditForm(currentRecord);
+                editModal.classList.remove('hidden');
             });
 
-            // Handle modal
-            recordsTable.addEventListener('click', (e) => {
-                const viewBtn = e.target.closest('.view-btn');
-                if (viewBtn) {
-                    const householdId = viewBtn.dataset.id;
-                    const record = allRecords.find(r => r.household.HouseholdID === householdId);
-                    if (record) {
-                        currentRecord = record;
-                        editBtn.href = `edit.html?id=${record.household.HouseholdID}`;
-                        displayRecordInModal(record);
-                    }
+            function populateEditForm(record) {
+                editHouseholdID.value = record.household.HouseholdID;
+                editBlockName.value = record.household.BlockName;
+                editResidentialAddress.value = record.household.ResidentialAddress;
+                editContactInformation.value = record.household.ContactInformation;
+
+                editMembersContainer.innerHTML = '';
+                record.members.forEach(member => addEditMemberForm(member));
+
+                editChildrenContainer.innerHTML = '';
+                record.children.forEach(child => addEditChildForm(child));
+            }
+
+            function addEditMemberForm(member = null) {
+                const isNew = !member;
+                const memberId = isNew ? `new-member-${Date.now()}` : member.MemberID;
+
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'card bg-white p-6 rounded-lg shadow-md';
+                memberDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">${isNew ? 'New Member' : `${member.FirstName} ${member.LastName}`}</h3>
+                        <button type="button" class="remove-btn text-gray-400 hover:text-red-500 transition duration-300" data-id="${memberId}"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" name="member-id" value="${memberId}">
+                        <div>
+                            <label class="block font-medium">First Name</label>
+                            <input type="text" name="firstName" class="form-input w-full p-2 border rounded" value="${member?.FirstName || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Last Name</label>
+                            <input type="text" name="lastName" class="form-input w-full p-2 border rounded" value="${member?.LastName || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Date of Birth</label>
+                            <input type="date" name="dateOfBirth" class="form-input w-full p-2 border rounded" value="${member?.DateOfBirth || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Catholic?</label>
+                            <select name="catholic" class="form-input w-full p-2 border rounded" required>
+                                <option value="Yes" ${member?.Catholic === 'Yes' ? 'selected' : ''}>Yes</option>
+                                <option value="No" ${member?.Catholic === 'No' ? 'selected' : ''}>No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Occupation</label>
+                            <input type="text" name="occupation" class="form-input w-full p-2 border rounded" value="${member?.Occupation || ''}">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church Activities</label>
+                            <input type="text" name="churchActivities" class="form-input w-full p-2 border rounded" value="${member?.ChurchActivities || ''}">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Solidarity/Ministry</label>
+                            <input type="text" name="solidarityMinistry" class="form-input w-full p-2 border rounded" value="${member?.SolidarityMinistry || ''}">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Leadership</label>
+                            <input type="text" name="leadership" class="form-input w-full p-2 border rounded" value="${member?.Leadership || ''}">
+                        </div>
+                    </div>
+                    <div class="sub-section mt-4">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Sacraments</h4>
+                        <label class="block font-medium">Baptised?</label>
+                        <select name="baptised" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${member?.Baptised === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${member?.Baptised === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Baptism</label>
+                                <input type="date" name="baptismDate" class="form-input w-full p-2 border rounded" value="${member?.BaptismDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Registration Number</label>
+                                <input type="text" name="baptismRegistrationNo" class="form-input w-full p-2 border rounded" value="${member?.BaptismRegistrationNo || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Baptism</label>
+                                <input type="text" name="churchOfBaptism" class="form-input w-full p-2 border rounded" value="${member?.ChurchOfBaptism || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Location of Church</label>
+                                <input type="text" name="locationOfChurch" class="form-input w-full p-2 border rounded" value="${member?.LocationOfChurch || ''}">
+                            </div>
+                        </div>
+                        <label class="block font-medium mt-4">1st Communion?</label>
+                        <select name="firstCommunion" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${member?.FirstCommunion === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${member?.FirstCommunion === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date 1st Communion</label>
+                                <input type="date" name="firstCommunionDate" class="form-input w-full p-2 border rounded" value="${member?.FirstCommunionDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of 1st Communion</label>
+                                <input type="text" name="churchOfFirstCommunion" class="form-input w-full p-2 border rounded" value="${member?.ChurchOfFirstCommunion || ''}">
+                            </div>
+                        </div>
+                        <label class="block font-medium mt-4">Confirmed?</label>
+                        <select name="confirmation" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${member?.Confirmation === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${member?.Confirmation === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Confirmation</label>
+                                <input type="date" name="confirmationDate" class="form-input w-full p-2 border rounded" value="${member?.ConfirmationDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Confirmation</label>
+                                <input type="text" name="churchOfConfirmation" class="form-input w-full p-2 border rounded" value="${member?.ChurchOfConfirmation || ''}">
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-600 mt-4 mb-2">Marital Status</h4>
+                        <label class="block font-medium">Marital Status</label>
+                        <select name="maritalStatus" class="form-input w-full p-2 border rounded" required>
+                            <option value="Single" ${member?.MaritalStatus === 'Single' ? 'selected' : ''}>Single</option>
+                            <option value="Married" ${member?.MaritalStatus === 'Married' ? 'selected' : ''}>Married</option>
+                            <option value="Widower" ${member?.MaritalStatus === 'Widower' ? 'selected' : ''}>Widow(er)</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Civil Court Marriage Date</label>
+                                <input type="date" name="civilCourtMarriageDate" class="form-input w-full p-2 border rounded" value="${member?.CivilCourtMarriageDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church Marriage Date</label>
+                                <input type="date" name="churchMarriageDate" class="form-input w-full p-2 border rounded" value="${member?.ChurchMarriageDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church Marriage Place</label>
+                                <input type="text" name="churchMarriagePlace" class="form-input w-full p-2 border rounded" value="${member?.ChurchMarriagePlace || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Divorced?</label>
+                                <select name="divorced" class="form-input w-full p-2 border rounded" required>
+                                    <option value="No" ${member?.Divorced === 'No' ? 'selected' : ''}>No</option>
+                                    <option value="Yes" ${member?.Divorced === 'Yes' ? 'selected' : ''}>Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-600 mt-4 mb-2">Dikabelo</h4>
+                        <label class="block font-medium">Dikabelo?</label>
+                        <select name="dikabelo" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${member?.Dikabelo === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${member?.Dikabelo === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Last Dikabelo</label>
+                                <input type="date" name="dateOfLastDikabelo" class="form-input w-full p-2 border rounded" value="${member?.DateOfLastDikabelo || ''}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                editMembersContainer.appendChild(memberDiv);
+                memberDiv.querySelector('.remove-btn').addEventListener('click', () => memberDiv.remove());
+            }
+
+            function addEditChildForm(child = null) {
+                const isNew = !child;
+                const childId = isNew ? `new-child-${Date.now()}` : child.ChildID;
+
+                const childDiv = document.createElement('div');
+                childDiv.className = 'card bg-white p-6 rounded-lg shadow-md';
+                childDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">${isNew ? 'New Child' : `${child.FirstName} ${child.LastName}`}</h3>
+                        <button type="button" class="remove-btn text-gray-400 hover:text-red-500 transition duration-300" data-id="${childId}"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" name="child-id" value="${childId}">
+                        <div>
+                            <label class="block font-medium">First Name</label>
+                            <input type="text" name="firstName" class="form-input w-full p-2 border rounded" value="${child?.FirstName || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Last Name</label>
+                            <input type="text" name="lastName" class="form-input w-full p-2 border rounded" value="${child?.LastName || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Date of Birth</label>
+                            <input type="date" name="dateOfBirth" class="form-input w-full p-2 border rounded" value="${child?.DateOfBirth || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Age</label>
+                            <input type="number" name="age" class="form-input w-full p-2 border rounded" value="${child?.Age || ''}" required>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Catholic?</label>
+                            <select name="catholic" class="form-input w-full p-2 border rounded" required>
+                                <option value="Yes" ${child?.Catholic === 'Yes' ? 'selected' : ''}>Yes</option>
+                                <option value="No" ${child?.Catholic === 'No' ? 'selected' : ''}>No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-medium">Church Activities</label>
+                            <input type="text" name="churchActivities" class="form-input w-full p-2 border rounded" value="${child?.ChurchActivities || ''}">
+                        </div>
+                    </div>
+                    <div class="sub-section mt-4">
+                        <h4 class="font-bold text-sm text-gray-600 mb-2">Sacraments</h4>
+                        <label class="block font-medium">Baptised?</label>
+                        <select name="baptised" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${child?.Baptised === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${child?.Baptised === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Baptism</label>
+                                <input type="date" name="baptismDate" class="form-input w-full p-2 border rounded" value="${child?.BaptismDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Registration Number</label>
+                                <input type="text" name="baptismRegistrationNo" class="form-input w-full p-2 border rounded" value="${child?.BaptismRegistrationNo || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Baptism</label>
+                                <input type="text" name="churchOfBaptism" class="form-input w-full p-2 border rounded" value="${child?.ChurchOfBaptism || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Location of Church</label>
+                                <input type="text" name="locationOfChurch" class="form-input w-full p-2 border rounded" value="${child?.LocationOfChurch || ''}">
+                            </div>
+                        </div>
+                        <label class="block font-medium mt-4">1st Communion?</label>
+                        <select name="firstCommunion" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${child?.FirstCommunion === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${child?.FirstCommunion === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date 1st Communion</label>
+                                <input type="date" name="firstCommunionDate" class="form-input w-full p-2 border rounded" value="${child?.FirstCommunionDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of 1st Communion</label>
+                                <input type="text" name="churchOfFirstCommunion" class="form-input w-full p-2 border rounded" value="${child?.ChurchOfFirstCommunion || ''}">
+                            </div>
+                        </div>
+                        <label class="block font-medium mt-4">Confirmed?</label>
+                        <select name="confirmation" class="form-input w-full p-2 border rounded" required>
+                            <option value="Yes" ${child?.Confirmation === 'Yes' ? 'selected' : ''}>Yes</option>
+                            <option value="No" ${child?.Confirmation === 'No' ? 'selected' : ''}>No</option>
+                        </select>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <label class="block font-medium">Date of Confirmation</label>
+                                <input type="date" name="confirmationDate" class="form-input w-full p-2 border rounded" value="${child?.ConfirmationDate || ''}">
+                            </div>
+                            <div>
+                                <label class="block font-medium">Church of Confirmation</label>
+                                <input type="text" name="churchOfConfirmation" class="form-input w-full p-2 border rounded" value="${child?.ChurchOfConfirmation || ''}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                editChildrenContainer.appendChild(childDiv);
+                childDiv.querySelector('.remove-btn').addEventListener('click', () => childDiv.remove());
+            }
+
+            addEditMemberBtn.addEventListener('click', () => addEditMemberForm());
+            addEditChildBtn.addEventListener('click', () => addEditChildForm());
+            
+            // Handle form submission for editing
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const householdID = editHouseholdID.value;
+                const householdData = {
+                    HouseholdID: householdID,
+                    BlockName: editBlockName.value,
+                    ResidentialAddress: editResidentialAddress.value,
+                    ContactInformation: editContactInformation.value
+                };
+
+                const membersData = [];
+                editMembersContainer.querySelectorAll('.card').forEach(memberDiv => {
+                    const member = {};
+                    member.HouseholdID = householdID;
+                    member.MemberID = memberDiv.querySelector('input[name="member-id"]').value;
+                    member.FirstName = memberDiv.querySelector('input[name="firstName"]').value;
+                    member.LastName = memberDiv.querySelector('input[name="lastName"]').value;
+                    member.DateOfBirth = memberDiv.querySelector('input[name="dateOfBirth"]').value;
+                    member.Catholic = memberDiv.querySelector('select[name="catholic"]').value;
+                    member.Occupation = memberDiv.querySelector('input[name="occupation"]').value;
+                    member.ChurchActivities = memberDiv.querySelector('input[name="churchActivities"]').value;
+                    member.SolidarityMinistry = memberDiv.querySelector('input[name="solidarityMinistry"]').value;
+                    member.Leadership = memberDiv.querySelector('input[name="leadership"]').value;
+                    member.Baptised = memberDiv.querySelector('select[name="baptised"]').value;
+                    member.BaptismDate = memberDiv.querySelector('input[name="baptismDate"]').value;
+                    member.BaptismRegistrationNo = memberDiv.querySelector('input[name="baptismRegistrationNo"]').value;
+                    member.ChurchOfBaptism = memberDiv.querySelector('input[name="churchOfBaptism"]').value;
+                    member.LocationOfChurch = memberDiv.querySelector('input[name="locationOfChurch"]').value;
+                    member.FirstCommunion = memberDiv.querySelector('select[name="firstCommunion"]').value;
+                    member.FirstCommunionDate = memberDiv.querySelector('input[name="firstCommunionDate"]').value;
+                    member.ChurchOfFirstCommunion = memberDiv.querySelector('input[name="churchOfFirstCommunion"]').value;
+                    member.Confirmation = memberDiv.querySelector('select[name="confirmation"]').value;
+                    member.ConfirmationDate = memberDiv.querySelector('input[name="confirmationDate"]').value;
+                    member.ChurchOfConfirmation = memberDiv.querySelector('input[name="churchOfConfirmation"]').value;
+                    member.MaritalStatus = memberDiv.querySelector('select[name="maritalStatus"]').value;
+                    member.CivilCourtMarriageDate = memberDiv.querySelector('input[name="civilCourtMarriageDate"]').value;
+                    member.ChurchMarriageDate = memberDiv.querySelector('input[name="churchMarriageDate"]').value;
+                    member.ChurchMarriagePlace = memberDiv.querySelector('input[name="churchMarriagePlace"]').value;
+                    member.Divorced = memberDiv.querySelector('select[name="divorced"]').value;
+                    member.Dikabelo = memberDiv.querySelector('select[name="dikabelo"]').value;
+                    member.DateOfLastDikabelo = memberDiv.querySelector('input[name="dateOfLastDikabelo"]').value;
+                    membersData.push(member);
+                });
+
+                const childrenData = [];
+                editChildrenContainer.querySelectorAll('.card').forEach(childDiv => {
+                    const child = {};
+                    child.HouseholdID = householdID;
+                    child.ChildID = childDiv.querySelector('input[name="child-id"]').value;
+                    child.FirstName = childDiv.querySelector('input[name="firstName"]').value;
+                    child.LastName = childDiv.querySelector('input[name="lastName"]').value;
+                    child.DateOfBirth = childDiv.querySelector('input[name="dateOfBirth"]').value;
+                    child.Age = childDiv.querySelector('input[name="age"]').value;
+                    child.Catholic = childDiv.querySelector('select[name="catholic"]').value;
+                    child.ChurchActivities = childDiv.querySelector('input[name="churchActivities"]').value;
+                    child.Baptised = childDiv.querySelector('select[name="baptised"]').value;
+                    child.BaptismDate = childDiv.querySelector('input[name="baptismDate"]').value;
+                    child.BaptismRegistrationNo = childDiv.querySelector('input[name="baptismRegistrationNo"]').value;
+                    child.ChurchOfBaptism = childDiv.querySelector('input[name="churchOfBaptism"]').value;
+                    child.LocationOfChurch = childDiv.querySelector('input[name="locationOfChurch"]').value;
+                    child.FirstCommunion = childDiv.querySelector('select[name="firstCommunion"]').value;
+                    child.FirstCommunionDate = childDiv.querySelector('input[name="firstCommunionDate"]').value;
+                    child.ChurchOfFirstCommunion = childDiv.querySelector('input[name="churchOfFirstCommunion"]').value;
+                    child.Confirmation = childDiv.querySelector('select[name="confirmation"]').value;
+                    child.ConfirmationDate = childDiv.querySelector('input[name="confirmationDate"]').value;
+                    child.ChurchOfConfirmation = childDiv.querySelector('input[name="churchOfConfirmation"]').value;
+                    childrenData.push(child);
+                });
+
+                const payload = {
+                    action: 'editRecord',
+                    household: householdData,
+                    members: membersData,
+                    children: childrenData
+                };
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        body: JSON.stringify(payload),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    showMessage('Record updated successfully.', 'bg-green-200 text-green-800');
+                    editModal.classList.add('hidden');
+                    fetchRecords(searchInput.value); // Refresh the list
+                    fetchCounts(); // Update dashboard counts
+                } catch (error) {
+                    showMessage('An error occurred during update.', 'bg-red-200 text-red-800');
+                    console.error('Error updating record:', error);
                 }
             });
 
-            closeModalBtn.addEventListener('click', () => {
-                recordModal.classList.add('hidden');
-                currentRecord = null;
+            // Close Edit Modal
+            closeEditModalBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+            });
+
+
+            // --- Delete Functionality ---
+            deleteBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('hidden');
             });
             
-            // Handle deletion
-            deleteBtn.addEventListener('click', async () => {
-                if (!currentRecord) return;
-                
-                // Use a custom modal-like approach since alert/confirm are disabled
-                const confirmDelete = await new Promise(resolve => {
-                    const confirmBox = document.createElement('div');
-                    confirmBox.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center';
-                    confirmBox.innerHTML = `
-                        <div class="bg-white rounded-lg p-6 shadow-xl text-center">
-                            <p class="text-lg font-bold mb-4">Are you sure you want to delete this record?</p>
-                            <p class="text-gray-600 mb-6">This action cannot be undone.</p>
-                            <div class="flex justify-center gap-4">
-                                <button id="cancelDelete" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg">Cancel</button>
-                                <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(confirmBox);
-                    document.getElementById('cancelDelete').addEventListener('click', () => {
-                        confirmBox.remove();
-                        resolve(false);
-                    });
-                    document.getElementById('confirmDelete').addEventListener('click', () => {
-                        confirmBox.remove();
-                        resolve(true);
-                    });
-                });
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmModal.classList.add('hidden');
+            });
 
-                if (!confirmDelete) return;
+            confirmDeleteBtn.addEventListener('click', async () => {
+                confirmModal.classList.add('hidden');
+                recordModal.classList.add('hidden');
+                
+                if (!currentRecord) {
+                    showMessage('No record selected for deletion.', 'bg-red-200 text-red-800');
+                    return;
+                }
 
                 const payload = {
                     action: 'deleteRecord',
@@ -288,9 +788,8 @@
                     });
 
                     showMessage('Record deleted successfully.', 'bg-green-200 text-green-800');
-                    recordModal.classList.add('hidden');
-                    fetchRecords(); // Refresh the list
-                    fetchCounts();
+                    fetchRecords(searchInput.value); // Refresh the list
+                    fetchCounts(); // Update dashboard counts
                 } catch (error) {
                     showMessage('An error occurred during deletion.', 'bg-red-200 text-red-800');
                     console.error('Error deleting record:', error);
@@ -306,70 +805,6 @@
                 document.body.innerHTML = originalBody;
                 window.location.reload(); // Reload to restore functionality
             });
-
-            // Function to display full record details in the modal
-            function displayRecordInModal(record) {
-                let content = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-sm text-gray-500">Household ID</p>
-                            <h3 class="text-lg font-bold text-gray-800">${record.household.HouseholdID}</h3>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Address</p>
-                            <h3 class="text-lg font-bold text-gray-800">${record.household.Address}</h3>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Household Head</p>
-                            <h3 class="text-lg font-bold text-gray-800">${record.household.HouseholdHeadName}</h3>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Block Name</p>
-                            <h3 class="text-lg font-bold text-gray-800">${record.household.BlockName}</h3>
-                        </div>
-                    </div>
-                `;
-
-                if (record.members && record.members.length > 0) {
-                    content += `<h3 class="text-xl font-bold mt-6 mb-2">Members</h3><div class="space-y-4">`;
-                    record.members.forEach(member => {
-                        content += `
-                            <div class="p-4 bg-gray-100 rounded-lg">
-                                <p class="font-semibold">${member.firstName} ${member.lastName}</p>
-                                <p class="text-sm text-gray-600">ID: ${member.MemberID}</p>
-                                <p class="text-sm text-gray-600">Contact: ${member.contactNumber || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">Email: ${member.email || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">Gender: ${member.gender || 'N/A'}</p>
-                            </div>
-                        `;
-                    });
-                    content += `</div>`;
-                }
-
-                if (record.children && record.children.length > 0) {
-                    content += `<h3 class="text-xl font-bold mt-6 mb-2">Children</h3><div class="space-y-4">`;
-                    record.children.forEach(child => {
-                        content += `
-                            <div class="p-4 bg-gray-100 rounded-lg">
-                                <p class="font-semibold">${child.firstName} ${child.lastName}</p>
-                                <p class="text-sm text-gray-600">ID: ${child.ChildID}</p>
-                                <p class="text-sm text-gray-600">Date of Birth: ${child.dateOfBirth || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">Baptised: ${child.baptised || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">First Communion: ${child.firstCommunion || 'N/A'}</p>
-                                <p class="text-sm text-gray-600">Confirmation: ${child.confirmation || 'N/A'}</p>
-                            </div>
-                        `;
-                    });
-                    content += `</div>`;
-                }
-                
-                modalContent.innerHTML = content;
-                recordModal.classList.remove('hidden');
-            }
-
-            // Initial data fetch
-            fetchCounts();
-            fetchRecords();
         });
     </script>
 </body>
