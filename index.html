@@ -70,7 +70,7 @@
 </div>
 
 <script>
-const API_URL = 'YOUR_DEPLOYED_APPS_SCRIPT_URL_HERE';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzH86E97gGZLE622geaGyMs_EG9hC-P2z3o1cDfUxpG5W2VpmpSzU7sd96iEhPB_4RzSg/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
     const censusForm = document.getElementById('censusForm');
@@ -184,3 +184,4 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({action:'create', household, members, children}),
                 headers:{'Content-Type':'application/json'}
             });
+
