@@ -3,228 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<title>Admin Dashboard - Our Lady of Fatima Shrine</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
 body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-.admin-card { background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 1rem; padding: 1.5rem; }
-.loading { border: 4px solid rgba(0,0,0,0.1); border-left-color: #1d4ed8; border-radius: 50%; width:24px; height:24px; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.text-sm-condensed { font-size:0.8rem; line-height:1.2; }
+.card { background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
+.hidden { display: none; }
 </style>
 </head>
 <body class="p-8 md:p-12">
-<div class="max-w-6xl mx-auto space-y-8">
-<header class="text-center">
-<h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-<p class="text-gray-600">Manage census records for Our Lady of Fatima Shrine</p>
-</header>
 
-<!-- Search Section -->
-<div class="admin-card">
-<h2 class="text-xl font-bold mb-4">Search Records</h2>
-<div class="flex flex-col sm:flex-row gap-4">
-<input type="text" id="searchInput" placeholder="Search by name, address, or block" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
-<button id="searchBtn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">Search</button>
-<button id="viewAllBtn" class="px-6 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition duration-300">View All</button>
-</div>
+<div class="max-w-6xl mx-auto">
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-bold">Admin Dashboard - Our Lady of Fatima Shrine</h1>
+    <input type="text" id="searchBox" placeholder="Search by First Name, Last Name, Block or Address" class="mt-4 p-3 w-full md:w-1/2 rounded-lg border">
+  </header>
+
+  <div id="recordsContainer" class="space-y-4"></div>
 </div>
 
-<!-- Counts Section -->
-<div class="admin-card grid grid-cols-1 md:grid-cols-3 gap-6">
-<h2 class="text-xl font-bold col-span-full">Quick Counts</h2>
-<div class="bg-indigo-100 p-4 rounded-lg flex flex-col justify-center items-center">
-<p class="text-indigo-800 font-semibold">Total Households</p>
-<span id="householdCount" class="text-3xl font-bold text-indigo-900">...</span>
-</div>
-<div class="bg-indigo-100 p-4 rounded-lg flex flex-col justify-center items-center">
-<p class="text-indigo-800 font-semibold">Total Members</p>
-<span id="memberCount" class="text-3xl font-bold text-indigo-900">...</span>
-</div>
-<div class="bg-indigo-100 p-4 rounded-lg flex flex-col justify-center items-center">
-<p class="text-indigo-800 font-semibold">Total Children</p>
-<span id="childCount" class="text-3xl font-bold text-indigo-900">...</span>
-</div>
-</div>
-
-<!-- Records Section -->
-<div class="admin-card">
-<h2 class="text-xl font-bold mb-4">Census Records</h2>
-<div id="resultsContainer">
-<div id="loadingIndicator" class="hidden flex justify-center py-8">
-<div class="loading"></div>
-</div>
-<div id="recordsList" class="space-y-6"></div>
-<div id="noResults" class="hidden text-center text-gray-500 py-8">
-<p>No records found. Try a different search.</p>
-</div>
-</div>
-</div>
-
-<!-- Modal -->
-<div id="recordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4">
-<div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-<div class="flex justify-between items-center mb-4">
-<h3 class="text-xl font-bold">Edit Record</h3>
-<button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-</div>
-<div id="modalContent"></div>
-<div class="mt-6 flex gap-4">
-<button id="saveBtn" class="w-full px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition duration-300"><i class="fa-solid fa-floppy-disk mr-2"></i> Save Changes</button>
-<button id="deleteBtn" class="w-full px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-300"><i class="fa-solid fa-trash-can mr-2"></i> Delete Record</button>
-</div>
-</div>
-</div>
+<!-- Edit Modal -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-3xl p-8 max-w-4xl w-full overflow-y-auto max-h-[90vh]">
+    <h2 class="text-2xl font-bold mb-4">Edit Household Record</h2>
+    <form id="editForm" class="space-y-6"></form>
+    <div class="flex justify-end gap-4 mt-4">
+      <button type="button" id="closeModal" class="px-6 py-3 bg-gray-300 rounded-full font-semibold">Cancel</button>
+      <button type="submit" form="editForm" class="px-6 py-3 bg-gradient-blue text-white rounded-full font-bold">Save Changes</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const API_URL = 'YOUR_DEPLOYED_WEB_APP_URL';
+const API_URL='YOUR_DEPLOYED_WEB_APP_URL';
 
-document.addEventListener('DOMContentLoaded', ()=>{
-const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
-const viewAllBtn = document.getElementById('viewAllBtn');
-const loadingIndicator = document.getElementById('loadingIndicator');
-const recordsList = document.getElementById('recordsList');
-const noResults = document.getElementById('noResults');
-const recordModal = document.getElementById('recordModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const modalContent = document.getElementById('modalContent');
-const householdCountEl = document.getElementById('householdCount');
-const memberCountEl = document.getElementById('memberCount');
-const childCountEl = document.getElementById('childCount');
-let currentRecord = null;
+let records=[];
 
-fetchData();
-fetchCounts();
+const recordsContainer=document.getElementById('recordsContainer');
+const searchBox=document.getElementById('searchBox');
+const editModal=document.getElementById('editModal');
+const editForm=document.getElementById('editForm');
+let currentEditId=null;
 
-searchBtn.addEventListener('click', ()=>{ fetchData(searchInput.value); });
-viewAllBtn.addEventListener('click', ()=>{ searchInput.value=''; fetchData(); });
-closeModalBtn.addEventListener('click', ()=> recordModal.classList.add('hidden'));
-
-async function fetchCounts(){
-  try{
-    const res = await fetch(`${API_URL}?action=viewAll`);
-    const data = await res.json();
-    householdCountEl.textContent = data.length;
-    memberCountEl.textContent = data.reduce((a,b)=>a+b.members.length,0);
-    childCountEl.textContent = data.reduce((a,b)=>a+b.children.length,0);
-  }catch(e){ console.error(e); }
+// Fetch all records
+async function fetchRecords(){
+  const res=await fetch(`${API_URL}?action=`);
+  records=await res.json();
+  renderRecords(records);
 }
 
-async function fetchData(query=''){
-loadingIndicator.classList.remove('hidden');
-recordsList.innerHTML='';
-noResults.classList.add('hidden');
-try{
-const url = query?`${API_URL}?action=search&q=${encodeURIComponent(query)}`:`${API_URL}?action=viewAll`;
-const res = await fetch(url);
-const data = await res.json();
-if(data.length>0){ renderRecords(data); noResults.classList.add('hidden'); }
-else{ noResults.classList.remove('hidden'); }
-}catch(e){ console.error(e); noResults.classList.remove('hidden'); }
-finally{ loadingIndicator.classList.add('hidden'); }
+// Render record cards
+function renderRecords(list){
+  recordsContainer.innerHTML='';
+  list.forEach(r=>{
+    const div=document.createElement('div'); div.className='card flex justify-between items-center';
+    div.innerHTML=`<div>
+      <p><strong>Block:</strong> ${r.household.blockName}</p>
+      <p><strong>Address:</strong> ${r.household.residentialAddress}</p>
+      <p><strong>Contact:</strong> ${r.household.contactInformation}</p>
+      <p><strong>Members:</strong> ${r.members.length}, <strong>Children:</strong> ${r.children.length}</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="editBtn px-4 py-2 bg-green-500 text-white rounded-lg" data-id="${r.householdId}"><i class="fa-solid fa-pen"></i> Edit</button>
+      <button class="deleteBtn px-4 py-2 bg-red-500 text-white rounded-lg" data-id="${r.householdId}"><i class="fa-solid fa-trash"></i> Delete</button>
+    </div>`;
+    recordsContainer.appendChild(div);
+  });
+
+  document.querySelectorAll('.editBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>openEditModal(btn.dataset.id));
+  });
+  document.querySelectorAll('.deleteBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>deleteRecord(btn.dataset.id));
+  });
 }
 
-function renderRecords(records){
-records.forEach(r=>{
-const recordDiv=document.createElement('div');
-recordDiv.className='admin-card hover:bg-gray-50 transition duration-300 cursor-pointer';
-recordDiv.innerHTML=`<h3 class="text-lg font-bold text-blue-600">${r.blockName} - ${r.residentialAddress}</h3>
-<p class="text-sm-condensed text-gray-500">Household ID: ${r.householdId}</p>
-<p class="text-gray-700 mt-2 font-semibold">Members: <span class="font-normal">${r.members.length}</span></p>
-<p class="text-gray-700 font-semibold">Children: <span class="font-normal">${r.children.length}</span></p>`;
-recordDiv.addEventListener('click', ()=>showEditModal(r.householdId));
-recordsList.appendChild(recordDiv);
+// Search functionality
+searchBox.addEventListener('input',()=>{
+  const q=searchBox.value.toLowerCase();
+  const filtered=records.filter(r=>r.household.blockName.toLowerCase().includes(q) || 
+                                    r.household.residentialAddress.toLowerCase().includes(q) ||
+                                    r.members.some(m=>m.firstName.toLowerCase().includes(q) || m.lastName.toLowerCase().includes(q)));
+  renderRecords(filtered);
 });
+
+// Delete record
+async function deleteRecord(id){
+  if(!confirm('Are you sure to delete this record?')) return;
+  await fetch(API_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'delete', householdId:id})});
+  await fetchRecords();
 }
 
-async function showEditModal(householdId){
-const res = await fetch(`${API_URL}?action=getDetails&householdId=${householdId}`);
-const data = await res.json();
-currentRecord = {householdId, ...data};
-modalContent.innerHTML = generateFormHTML(data);
-setupConditionalFields(modalContent);
-recordModal.classList.remove('hidden');
+// Open Edit Modal
+async function openEditModal(id){
+  currentEditId=id;
+  const res=await fetch(`${API_URL}?action=getDetails&householdId=${id}`);
+  const data=await res.json();
+  editForm.innerHTML=generateEditFormHTML(data);
+  editModal.classList.remove('hidden');
+  setupConditionalFields(editForm);
 }
 
-// ----------------- Generate Edit Form HTML -----------------
-function generateFormHTML(data){
-let html = `<div class="space-y-6">
-<h4 class="font-bold text-gray-800">Household Information</h4>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div><label class="block font-medium">Block Name</label><input type="text" name="blockName" value="${data.household.blockName}" class="form-input w-full"></div>
-<div><label class="block font-medium">Residential Address</label><input type="text" name="residentialAddress" value="${data.household.residentialAddress}" class="form-input w-full"></div>
-<div class="md:col-span-2"><label class="block font-medium">Contact</label><input type="text" name="contactInformation" value="${data.household.contactInformation}" class="form-input w-full"></div>
-</div></div><hr class="my-4">`;
+// Close modal
+document.getElementById('closeModal').addEventListener('click',()=>editModal.classList.add('hidden'));
 
-// Members
-data.members.forEach((m,i)=>{
-html+=`<div class="card p-4 mb-4">
-<h5 class="font-bold mb-2">Member #${i+1}</h5>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<div><label>First Name</label><input type="text" name="member-${i}-firstName" value="${m.firstName}" class="form-input w-full"></div>
-<div><label>Last Name</label><input type="text" name="member-${i}-lastName" value="${m.lastName}" class="form-input w-full"></div>
-<div><label>Date of Birth</label><input type="date" name="member-${i}-dateOfBirth" value="${m.dateOfBirth}" class="form-input w-full"></div>
-<div><label>Catholic?</label><select name="member-${i}-catholic" class="form-input"><option ${m.catholic==='Yes'?'selected':''}>Yes</option><option ${m.catholic==='No'?'selected':''}>No</option></select></div>
-<div><label>Occupation</label><input type="text" name="member-${i}-occupation" value="${m.occupation}" class="form-input w-full"></div>
-<div><label>Church Activities</label><input type="text" name="member-${i}-churchActivities" value="${m.churchActivities}" class="form-input w-full"></div>
-<div><label>Solidarity/Ministry</label><input type="text" name="member-${i}-solidarityMinistry" value="${m.solidarityMinistry}" class="form-input w-full"></div>
-<div><label>Leadership</label><input type="text" name="member-${i}-leadership" value="${m.leadership}" class="form-input w-full"></div>
-</div>
-<div class="sub-section mt-2"><label>Baptised?</label>
-<select name="member-${i}-baptised" class="form-input baptized-select"><option ${m.baptised==='Yes'?'selected':''}>Yes</option><option ${m.baptised==='No'?'selected':''}>No</option></select>
-<div class="baptised-fields ${m.baptised==='Yes'?'':'hidden'} mt-2">
-<input type="date" name="member-${i}-baptismDate" value="${m.baptismDate}" placeholder="Baptism Date" class="form-input w-full mb-1">
-<input type="text" name="member-${i}-baptismRegistrationNo" value="${m.baptismRegistrationNo}" placeholder="Registration No" class="form-input w-full mb-1">
-<input type="text" name="member-${i}-churchOfBaptism" value="${m.churchOfBaptism}" placeholder="Church" class="form-input w-full mb-1">
-<input type="text" name="member-${i}-locationOfChurch" value="${m.locationOfChurch}" placeholder="Location" class="form-input w-full mb-1">
-</div></div>`;
-/* Similar blocks for first communion, confirmation, marital status, dikabelo can be added similarly using the same pattern */
+// Submit Edit Form
+editForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const fd=new FormData(editForm);
+  const household={
+    householdId: currentEditId,
+    blockName: fd.get('blockName'),
+    residentialAddress: fd.get('residentialAddress'),
+    contactInformation: fd.get('contactInformation')
+  };
+
+  const members=[];
+  const children=[];
+  // Collect members
+  for(let i=1;;i++){
+    if(!fd.get(`member-${i}-firstName`)) break;
+    members.push({
+      firstName: fd.get(`member-${i}-firstName`),
+      lastName: fd.get(`member-${i}-lastName`),
+      dateOfBirth: fd.get(`member-${i}-dateOfBirth`),
+      catholic: fd.get(`member-${i}-catholic`)
+    });
+  }
+  // Collect children
+  for(let i=1;;i++){
+    if(!fd.get(`child-${i}-firstName`)) break;
+    children.push({
+      firstName: fd.get(`child-${i}-firstName`),
+      lastName: fd.get(`child-${i}-lastName`),
+      dateOfBirth: fd.get(`child-${i}-dateOfBirth`),
+      age: fd.get(`child-${i}-age`),
+      catholic: fd.get(`child-${i}-catholic`)
+    });
+  }
+
+  await fetch(API_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update', household, members, children})});
+  editModal.classList.add('hidden');
+  await fetchRecords();
 });
-return html;
+
+// Generate Edit Form HTML (simplified version, can replicate index.html form completely)
+function generateEditFormHTML(data){
+  let html=`<div class="space-y-4">
+    <label>Block Name</label><input name="blockName" value="${data.household.blockName}" class="w-full border rounded-lg p-2" required>
+    <label>Address</label><input name="residentialAddress" value="${data.household.residentialAddress}" class="w-full border rounded-lg p-2" required>
+    <label>Contact</label><input name="contactInformation" value="${data.household.contactInformation}" class="w-full border rounded-lg p-2" required>
+    </div><h3 class="text-lg font-bold mt-4">Members</h3><div id="editMembersContainer" class="space-y-4">`;
+
+  data.members.forEach((m,i)=>{
+    html+=`<div class="border p-3 rounded-lg">
+      <label>First Name</label><input name="member-${i+1}-firstName" value="${m.firstName}" class="w-full border rounded-lg p-1" required>
+      <label>Last Name</label><input name="member-${i+1}-lastName" value="${m.lastName}" class="w-full border rounded-lg p-1" required>
+      <label>Date of Birth</label><input type="date" name="member-${i+1}-dateOfBirth" value="${m.dateOfBirth}" class="w-full border rounded-lg p-1">
+      <label>Catholic?</label><select name="member-${i+1}-catholic"><option ${m.catholic==='Yes'?'selected':''}>Yes</option><option ${m.catholic==='No'?'selected':''}>No</option></select>
+    </div>`;
+  });
+  html+='</div><h3 class="text-lg font-bold mt-4">Children</h3><div id="editChildrenContainer" class="space-y-4">';
+  data.children.forEach((c,i)=>{
+    html+=`<div class="border p-3 rounded-lg">
+      <label>First Name</label><input name="child-${i+1}-firstName" value="${c.firstName}" class="w-full border rounded-lg p-1" required>
+      <label>Last Name</label><input name="child-${i+1}-lastName" value="${c.lastName}" class="w-full border rounded-lg p-1" required>
+      <label>Date of Birth</label><input type="date" name="child-${i+1}-dateOfBirth" value="${c.dateOfBirth}" class="w-full border rounded-lg p-1">
+      <label>Age</label><input type="number" name="child-${i+1}-age" value="${c.age}" class="w-full border rounded-lg p-1">
+      <label>Catholic?</label><select name="child-${i+1}-catholic"><option ${c.catholic==='Yes'?'selected':''}>Yes</option><option ${c.catholic==='No'?'selected':''}>No</option></select>
+    </div>`;
+  });
+  html+='</div>';
+  return html;
 }
 
-// ----------------- Conditional Fields -----------------
-function setupConditionalFields(container){
-container.querySelectorAll('.baptized-select').forEach(sel=>{
-sel.addEventListener('change', e=>{
-const fields = e.target.parentElement.querySelector('.baptised-fields');
-if(e.target.value==='Yes'){ fields.classList.remove('hidden'); } else { fields.classList.add('hidden'); }
-});
-});
-}
+// Placeholder for conditional fields setup (if you want full replication of index.html logic)
+function setupConditionalFields(container){ /* implement if needed */ }
 
-// ----------------- Save & Delete -----------------
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
-if(!currentRecord) return;
-const formInputs = modalContent.querySelectorAll('.form-input, select');
-const updatedHousehold = {householdId: currentRecord.householdId, blockName:'', residentialAddress:'', contactInformation:''};
-const updatedMembers = [];
-formInputs.forEach(inp=>{
-const name = inp.name; const value=inp.value;
-if(name==='blockName') updatedHousehold.blockName=value;
-else if(name==='residentialAddress') updatedHousehold.residentialAddress=value;
-else if(name==='contactInformation') updatedHousehold.contactInformation=value;
-else if(name.startsWith('member-')){
-const [_, idx, field] = name.split('-');
-if(!updatedMembers[idx]) updatedMembers[idx]={};
-updatedMembers[idx][field]=value;
-}
-});
-const payload = {action:'update', household:updatedHousehold, members:updatedMembers, children:currentRecord.children};
-await fetch(API_URL,{method:'POST', body:JSON.stringify(payload), headers:{'Content-Type':'application/json'}});
-recordModal.classList.add('hidden'); fetchData(); fetchCounts();
-});
-
-document.getElementById('deleteBtn').addEventListener('click', async ()=>{
-if(!currentRecord) return;
-if(!confirm('Are you sure you want to delete this household and all associated members and children?')) return;
-await fetch(API_URL,{method:'POST', body:JSON.stringify({action:'delete', householdId:currentRecord.householdId}), headers:{'Content-Type':'application/json'}});
-recordModal.classList.add('hidden'); fetchData(); fetchCounts();
-});
-});
+fetchRecords();
 </script>
+
 </body>
 </html>
