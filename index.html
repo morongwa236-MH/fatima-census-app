@@ -10,16 +10,17 @@
 body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 .form-section { border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; }
 .card { background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 1rem; padding: 1.5rem; margin-top: 1.5rem; }
-.bg-gradient-blue { background: linear-gradient(135deg,#1d4ed8,#3b82f6); }
-.bg-gradient-green { background: linear-gradient(135deg,#059669,#10b981); }
-.bg-gradient-red { background: linear-gradient(135deg,#dc2626,#ef4444); }
+.bg-gradient-blue { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+.bg-gradient-green { background: linear-gradient(135deg, #059669, #10b981); }
+.bg-gradient-red { background: linear-gradient(135deg, #dc2626, #ef4444); }
 .sub-section { border-left: 4px solid #d1d5db; padding-left: 1rem; margin-left: 1rem; margin-top: 1rem; }
 </style>
 </head>
 <body class="p-8 md:p-12">
+
 <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 md:p-12">
 <header class="text-center mb-10">
-<img src="https://placehold.co/150x150/374151/FFFFFF?text=Logo" alt="Logo" class="mx-auto mb-4 rounded-full shadow-lg">
+<img src="https://placehold.co/150x150/374151/FFFFFF?text=Logo" alt="Our Lady of Fatima Logo" class="mx-auto mb-4 rounded-full shadow-lg">
 <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Our Lady of Fatima Shrine</h1>
 <p class="text-gray-600 text-lg">Household Census Form</p>
 <div id="messageBox" class="mt-4 p-4 rounded-lg text-sm text-center font-semibold hidden"></div>
@@ -31,21 +32,21 @@ body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-house"></i> Household Information</h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="space-y-2">
-<label>Block Name</label>
-<input type="text" name="blockName" class="w-full px-4 py-2 border rounded-lg" required>
+<label for="blockName" class="block font-medium">Block Name</label>
+<input type="text" id="blockName" name="blockName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300" required>
 </div>
 <div class="space-y-2">
-<label>Residential Address</label>
-<input type="text" name="residentialAddress" class="w-full px-4 py-2 border rounded-lg" required>
+<label for="residentialAddress" class="block font-medium">Residential Address</label>
+<input type="text" id="residentialAddress" name="residentialAddress" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300" required>
 </div>
 <div class="space-y-2 col-span-1 md:col-span-2">
-<label>Contact Information (Main Member)</label>
-<input type="tel" name="contactInformation" class="w-full px-4 py-2 border rounded-lg" required>
+<label for="contactInformation" class="block font-medium">Contact Information (Main Member)</label>
+<input type="tel" id="contactInformation" name="contactInformation" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300" required>
 </div>
 </div>
 </div>
 
-<!-- Members -->
+<!-- Members Information -->
 <div class="form-section bg-green-50 text-gray-800">
 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-user-group"></i> Members' Information</h2>
 <div id="membersContainer" class="space-y-6"></div>
@@ -54,7 +55,7 @@ body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 </button>
 </div>
 
-<!-- Children -->
+<!-- Children Information -->
 <div class="form-section bg-red-50 text-gray-800">
 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-child"></i> Children's Information</h2>
 <div id="childrenContainer" class="space-y-6"></div>
@@ -64,74 +65,104 @@ body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 </div>
 
 <div class="flex justify-center">
-<button type="submit" class="w-full md:w-64 px-8 py-4 bg-gradient-blue text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">Submit Census Form</button>
+<button type="submit" id="submitBtn" class="w-full md:w-64 px-8 py-4 bg-gradient-blue text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+Submit Census Form
+</button>
 </div>
 </form>
 </div>
 
 <script>
-const API_URL='YOUR_DEPLOYED_WEB_APP_URL';
+const API_URL = 'YOUR_DEPLOYED_APPS_SCRIPT_URL'; // Replace with your Apps Script URL
 
-document.addEventListener('DOMContentLoaded',()=>{
-const addMemberBtn=document.getElementById('addMemberBtn');
-const addChildBtn=document.getElementById('addChildBtn');
-const membersContainer=document.getElementById('membersContainer');
-const childrenContainer=document.getElementById('childrenContainer');
-const censusForm=document.getElementById('censusForm');
-const messageBox=document.getElementById('messageBox');
-let memberCount=0, childCount=0;
+document.addEventListener('DOMContentLoaded', () => {
+const addMemberBtn = document.getElementById('addMemberBtn');
+const addChildBtn = document.getElementById('addChildBtn');
+const censusForm = document.getElementById('censusForm');
+const membersContainer = document.getElementById('membersContainer');
+const childrenContainer = document.getElementById('childrenContainer');
+const messageBox = document.getElementById('messageBox');
 
-function addMember(){ memberCount++;
-const div=document.createElement('div'); div.className='card';
-div.innerHTML=`<div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Member #${memberCount}</h3>
-<button type="button" class="remove-btn text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button></div>
+let memberCount = 0;
+let childCount = 0;
+
+function createMemberForm() {
+memberCount++;
+const div = document.createElement('div');
+div.className='card';
+div.innerHTML=`<h3 class="text-lg font-bold mb-2">Member #${memberCount}</h3>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div><label>First Name</label><input type="text" name="member-${memberCount}-firstName" class="form-input" required></div>
 <div><label>Last Name</label><input type="text" name="member-${memberCount}-lastName" class="form-input" required></div>
-<div><label>Date of Birth</label><input type="date" name="member-${memberCount}-dateOfBirth" class="form-input" required></div>
-<div><label>Catholic?</label><select name="member-${memberCount}-catholic" class="form-input"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>`;
+</div>`;
 membersContainer.appendChild(div);
-div.querySelector('.remove-btn').addEventListener('click',()=>div.remove());
 }
 
-function addChild(){ childCount++;
-const div=document.createElement('div'); div.className='card';
-div.innerHTML=`<div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Child #${childCount}</h3>
-<button type="button" class="remove-btn text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button></div>
+function createChildForm() {
+childCount++;
+const div = document.createElement('div');
+div.className='card';
+div.innerHTML=`<h3 class="text-lg font-bold mb-2">Child #${childCount}</h3>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div><label>First Name</label><input type="text" name="child-${childCount}-firstName" class="form-input" required></div>
 <div><label>Last Name</label><input type="text" name="child-${childCount}-lastName" class="form-input" required></div>
-<div><label>Date of Birth</label><input type="date" name="child-${childCount}-dateOfBirth" class="form-input" required></div>
-<div><label>Age</label><input type="number" name="child-${childCount}-age" class="form-input" required></div>
-<div><label>Catholic?</label><select name="child-${childCount}-catholic" class="form-input"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>`;
+</div>`;
 childrenContainer.appendChild(div);
-div.querySelector('.remove-btn').addEventListener('click',()=>div.remove());
 }
 
-addMember(); addChild();
-addMemberBtn.addEventListener('click',addMember);
-addChildBtn.addEventListener('click',addChild);
+addMemberBtn.addEventListener('click', createMemberForm);
+addChildBtn.addEventListener('click', createChildForm);
+
+createMemberForm(); // default one
+createChildForm(); // default one
 
 censusForm.addEventListener('submit', async e=>{
 e.preventDefault();
 showMessage('Submitting form...', 'bg-blue-200 text-blue-800');
-const fd=new FormData(censusForm);
-const household={ blockName: fd.get('blockName'), residentialAddress: fd.get('residentialAddress'), contactInformation: fd.get('contactInformation') };
-const members=[], children=[];
+
+const formData = new FormData(censusForm);
+const household = {
+blockName: formData.get('blockName'),
+residentialAddress: formData.get('residentialAddress'),
+contactInformation: formData.get('contactInformation')
+};
+
+const members = [];
 for(let i=1;i<=memberCount;i++){
-if(fd.get(`member-${i}-firstName`)) members.push({ firstName:fd.get(`member-${i}-firstName`), lastName:fd.get(`member-${i}-lastName`), dateOfBirth:fd.get(`member-${i}-dateOfBirth`), catholic:fd.get(`member-${i}-catholic`)});
+if(document.querySelector(`input[name="member-${i}-firstName"]`)){
+members.push({
+firstName: formData.get(`member-${i}-firstName`),
+lastName: formData.get(`member-${i}-lastName`)
+});
 }
+}
+
+const children = [];
 for(let i=1;i<=childCount;i++){
-if(fd.get(`child-${i}-firstName`)) children.push({ firstName:fd.get(`child-${i}-firstName`), lastName:fd.get(`child-${i}-lastName`), dateOfBirth:fd.get(`child-${i}-dateOfBirth`), age:fd.get(`child-${i}-age`), catholic:fd.get(`child-${i}-catholic`)});
+if(document.querySelector(`input[name="child-${i}-firstName"]`)){
+children.push({
+firstName: formData.get(`child-${i}-firstName`),
+lastName: formData.get(`child-${i}-lastName`)
+});
 }
-try{
-await fetch(API_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'submit', household, members, children}) });
-showMessage('Form submitted successfully!','bg-green-200 text-green-800');
-censusForm.reset(); membersContainer.innerHTML=''; childrenContainer.innerHTML=''; memberCount=0; childCount=0; addMember(); addChild();
-}catch(err){ console.error(err); showMessage('An error occurred. Please try again.','bg-red-200 text-red-800'); }
+}
+
+const payload = {household,members,children};
+
+try {
+await fetch(API_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'application/json'}});
+showMessage('Form submitted successfully! Thank you.','bg-green-200 text-green-800');
+censusForm.reset(); membersContainer.innerHTML=''; childrenContainer.innerHTML=''; memberCount=0; childCount=0; createMemberForm(); createChildForm();
+} catch(e){
+console.error(e); showMessage('Error submitting form. Try again.','bg-red-200 text-red-800');
+}
 });
 
-function showMessage(msg,colorClass){ messageBox.textContent=msg; messageBox.className=`mt-4 p-4 rounded-lg text-sm text-center font-semibold ${colorClass} visible`; }
+function showMessage(msg,colorClass){
+messageBox.textContent=msg;
+messageBox.className=`mt-4 p-4 rounded-lg text-sm text-center font-semibold ${colorClass} visible`;
+messageBox.classList.remove('hidden');
+}
 });
 </script>
 </body>
